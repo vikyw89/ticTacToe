@@ -45,18 +45,33 @@ footer {
     padding: 10px;
 }
 
-.tictactoe-container {
+
+.info {
     display: grid;
-    grid-template-columns: repeat(3, 50px);
-    grid-template-rows: repeat(3, 50px);
-    /* align-content: center; */
-    /* align-items: center; */
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr;
+    grid-template-areas: 
+        'playerX playerO'
+        'announcement announcement';
+}
+
+.playerX {
+    
+}
+
+.tictactoe-container {
+    width: clamp(200px, 80vw ,500px);
+    align-self: center;
+    aspect-ratio: 1;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
     justify-content: center;
 }
 
 .tictactoe-container > div {
-    text-align: center;
-    aspect-ratio: 1;
-    outline: blue 1px solid;
-
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4rem;
 }
