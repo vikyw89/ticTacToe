@@ -1,10 +1,8 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto&effect=fire-animation');
-
 * {
     padding:0px;
     margin:0px;
     box-sizing: border-box;
-    outline: 1px solid red;
+    /* outline: 1px solid white; */
 }
 
 :root {
@@ -36,7 +34,7 @@ main {
     flex:1;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content:space-between;
     gap:10px;
 }
 
@@ -51,12 +49,49 @@ footer {
     grid-template-columns: 1fr 1fr;
     grid-template-rows: 1fr;
     grid-template-areas: 
-        'playerX playerO'
-        'announcement announcement';
+        'player-x player-o';
+    text-align: center;
 }
 
-.playerX {
-    
+.player-o {
+    grid-area: player-o;
+    display: flex;
+    flex-direction: column;
+    gap:10px;
+}
+
+.player-o-name {
+    font-size: 3rem;
+    font-weight: bold;
+}
+
+.player-o-score {
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.player-x {
+    grid-area: player-x;
+    display: flex;
+    flex-direction: column;
+    gap:10px;
+}
+
+.player-x-name {
+    font-size: 3rem;
+    font-weight: bold;
+}
+
+.player-x-score {
+    font-size: 2rem;
+    font-weight: bold;
+}
+.announcement {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, 0);
+    font-size: 5rem;
 }
 
 .tictactoe-container {
@@ -74,4 +109,14 @@ footer {
     align-items: center;
     justify-content: center;
     font-size: 4rem;
+    outline: var(--darkreader-selection-background) 1px solid;
+    transition:2s;
+}
+
+/* .hide {
+    display: none;
+} */
+
+.blur {
+    filter: blur(1.5rem);
 }
