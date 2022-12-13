@@ -47,6 +47,10 @@ const player = (arg) => {
         }
     }
 
+    const updateRole = () => {
+        
+    }
+
     // bind events
     pubSub.on('playerWin', setScore)
     
@@ -129,7 +133,7 @@ const gameBoard = (()=> {
     }
 
     const checkWinner =() =>{
-        const lastMove = players[turnCount-1]
+        const lastMove = players[(turnCount-1)%2]
         // check row and col
         for (let i = 0; i < gameStats.length; i++){
             checkCol:
@@ -186,6 +190,10 @@ const gameBoard = (()=> {
         },arg)
     }
 
+    const logger = (arg) => {
+        console.log(arg)
+    }
+
     // bind events
     board.addEventListener('click', boardClickHandler)
     pubSub.on('blur', blur)
@@ -193,10 +201,13 @@ const gameBoard = (()=> {
     
     // init
     render()
-    return {}
+
+    pubSub.on('playerXRoleUpdate', logger)
+    pubSub.on('playerORoleUpdate', logger)
 })()
 
 const infoBoard = (()=> {
+    // variables
     let info = ''
     
     // cache DOM
@@ -221,9 +232,33 @@ const infoBoard = (()=> {
     pubSub.on('info', setInfo)
     
     // init
-    // render()
 })()
 
-const restartButton = () => {
+const settings = (() => {
+    // variables
+    let playerXRole = 'human'
+    let playerORole = 'human'
 
-}
+    // cache dom
+    const roleSelection = document.querySelectorAll('.settings > * > select')
+
+    // method
+    const updateRole = (e) => {
+        switch (true) {
+            case e.target.id === 'player-x-setting':
+                playerXRole = e.target.value
+                pubSub.emit('playerXRoleUpdate', playerXRole)
+                break
+            case e.target.id === 'player-o-setting':
+                playerORole = e.target.value
+                pubSub.emit('playerORoleUpdate', playerORole)
+                break
+        }
+    }
+
+    // bind events
+    roleSelection.forEach(element=> {
+        element.addEventListener('input', updateRole)
+    })
+    // init
+})()
