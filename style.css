@@ -10,6 +10,7 @@
     --darkreader-neutral-text: #d8d4cf;
     --darkreader-selection-background: #004daa;
     --darkreader-selection-text: #e8e6e3;
+    --darkreader-border: rgb(56, 61, 63)
 }
 
 body {
@@ -89,7 +90,7 @@ footer {
 .announcement {
     position: fixed;
     left: 50%;
-    top: 25%;
+    top: calc(50%*100vh);
     transform: translate(-50%, 0);
     font-size: 5rem;
 }
@@ -114,17 +115,16 @@ footer {
 
 .tictactoe-container > div:nth-child(3n),
 .tictactoe-container > div:nth-child(3n-1) {
-    border-left: 4px solid var(--darkreader-neutral-text);
+    border-left: 4px solid var(--darkreader-border);
 }
 
 .tictactoe-container > div:nth-child(n + 4) {
-    border-top: 4px solid var(--darkreader-neutral-text)
+    border-top: 4px solid var(--darkreader-border)
 }
 
-.tictactoe-container > div:nth-child()
 
 .blur {
-    filter: blur(1.5rem);
+    filter: blur(5px);
 }
 
 .settings {

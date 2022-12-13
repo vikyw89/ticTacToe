@@ -177,6 +177,7 @@ const gameBoard = (()=> {
     }
 
     const blur = (arg) => {
+        console.log('blur')
         board.classList.add('blur')
         setTimeout(()=>{
             board.classList.remove('blur')
