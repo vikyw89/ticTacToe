@@ -12,7 +12,6 @@ const player = (arg) => {
     }
 
     const setScore = (arg)=> {
-        console.log(_score)
         _score = arg
         _render()
         return _score
