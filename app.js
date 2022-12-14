@@ -1,31 +1,42 @@
 const player = (arg) => {
     const _playerName = arg
-    let _brain = 'human'
     let _score = 0
+    let _brain = 'human'
 
+    // cache DOM
     const _playerScore = document.querySelector(`.player-${_playerName.toLowerCase()}-score`)
 
-    const _render = () => {
-        _playerScore.textContent = _score
+    // methods
+    const score = () => {
+        return _score
     }
-    
-    const setScore = ()=> {
-        _score++
+
+    const setScore = (arg)=> {
+        _score = arg
         _render()
+        return _score
     }
     
-    const setBrain = (arg) => {
-        return _brain = arg
-    }
-    
-    const getBrain = () => {
+    const brain = () => {
         return _brain
     }
 
+    const setBrain = (arg) => {
+        _brain = arg
+        _render()
+        return _brain
+    }
+    
+    const _render = () => {
+        _playerScore.textContent = _score
+    }
+
+    // export
     return {
-        setBrain,
+        score,
         setScore,
-        getBrain
+        brain,
+        setBrain,
     }
 }
 
@@ -33,88 +44,126 @@ const playerX = player('X')
 const playerO = player('O')
 
 const gameBoard = (()=> {
-    let _gameStats = [
+    let _players = ['X', 'O']
+    let _board = [
         [null,null,null],
         [null,null,null],
         [null,null,null]
     ]
-    const _players = ['X', 'O']
     let _turnCount = 0
+    let _currentPlayer = _players[_turnCount]
 
-
-    const _board = document.querySelector('.tictactoe-container')
+    // cache DOM
+    const _boardContainer = document.querySelector('.tictactoe-container')
     const _cells = document.querySelectorAll('.cell')
     
+    // methods
+    const players = () => {
+        return _players
+    }
+
+    const setPlayers = (arg) => {
+        _players = arg
+        _render()
+        return _players
+    }
+
+    const board = () => {
+        return _board
+    }
+
+    const setBoard = (arg) => {
+        _board = arg
+        _render()
+        return _board
+    }
+
+    const turnCount = () => {
+        return _turnCount
+    }
+
+    const setTurnCount = (arg) => {
+        _turnCount = arg
+        setCurrentPlayer(_players[_turnCount%2])
+        _render()
+        return _turnCount
+    }
 
     const _render = () => {
-        _board.innerHTML = ''
-        for(let row = 0; row < _gameStats.length; row++){
-            for (let col = 0; col < _gameStats[row].length; col++){
-                const newCell = document.createElement('div')
-                newCell.setAttribute('data-col', col)
-                newCell.setAttribute('data-row', row)
-                newCell.classList.add('cell')
-                newCell.textContent = _gameStats[row][col]
-                if (newCell.textContent === 'X') {
-                    newCell.setAttribute('class', 'font-effect-fire')
-                } else if (newCell.textContent === 'O') {
-                    newCell.setAttribute('class', 'font-effect-neon')
-                }
-                _board.appendChild(newCell)
+        _cells.forEach(element => {
+            const [row,col] = [element.dataset.row, element.dataset.col]
+            element.textContent = ''
+            element.classList.remove('font-effect-fire')
+            element.classList.remove('font-effect-fire')
+            switch (true) {
+                case _board[row][col] === 'X':
+                    element.textContent = 'X'
+                    element.classList.add('font-effect-fire')
+                    break
+                case _board[row][col] === 'O':
+                    element.textContent = 'O'
+                    element.classList.add('font-effect-neon')
+                    break
             }
-        }
+        })
     }
     
-    const turnOf = (_turnCount) => {
-        return _players[_turnCount%2]
+    const currentPlayer = () => {
+        return _currentPlayer
+    }
+
+    const setCurrentPlayer = (arg) => {
+        _currentPlayer = arg
+        _render()
+        return _currentPlayer
     }
 
     const _playerTurn = () => {
-        const turn = turnOf(_turnCount)
-        _turnCount++
+        const turn = currentPlayer()
         switch (true){
-            case turn === 'X' && playerX.getBrain() === 'human':
+            case turn === 'X' && playerX.brain() === 'human':
                 _enableClick()
                 break
-            case turn === 'O' && playerO.getBrain() === 'human':
+            case turn === 'O' && playerO.brain() === 'human':
                 _enableClick()
                 break
-            case turn === 'X' && playerX.getBrain() !== 'human':
-                ai.nextMove(playerX.getBrain())
+            case turn === 'X' && playerX.brain() !== 'human':
+                ai.nextMove(playerX.brain())
                 break
-            case turn === 'O' && playerO.getBrain() !== 'human':
-                ai.nextMove(playerO.getBrain())
+            case turn === 'O' && playerO.brain() !== 'human':
+                ai.nextMove(playerO.brain())
                 break
         }
     }
     
     const _enableClick = () => {
-        _board.addEventListener('click', _clickHandler)
+        _boardContainer.addEventListener('click', _clickHandler)
     }
     
     const _preventClick = () => {
-        _board.removeEventListener('click', _clickHandler)
+        _boardContainer.removeEventListener('click', _clickHandler)
     }
 
     const registeringPlayerMove = (arg) => {
         const [row, col] = arg
-        if (_gameStats[row][col] !== null) return _enableClick()
-        const turn = _players[(_turnCount -1 )%2]
-        _gameStats[row][col] = turn
+        if (_board[row][col] !== null) return _enableClick()
+        const turn = _players[(_turnCount)%2]
+        _board[row][col] = turn
+        setTurnCount(_turnCount + 1)
         _render()
         if (_turnCount < 5) return _playerTurn()
         switch (true) {
-            case checkWinner(_gameStats, turn) && turn === 'X':
+            case checkWinner(_board, turn) && turn === 'X':
                 notification.setNotif('X WON THIS ROUND !')
                 playerX.setScore()
                 _reset()
                 break
-            case checkWinner(_gameStats, turn) && turn === 'O':
+            case checkWinner(_board, turn) && turn === 'O':
                 notification.setNotif('O WON THIS ROUND !')
                 playerO.setScore()
                 _reset()
                 break
-            case checkWinner(_gameStats, turn) === false && _turnCount === 9:
+            case checkWinner(_board, turn) === false && _turnCount === 9:
                 notification.setNotif('DRAW !')
                 _reset()
                 break
@@ -168,7 +217,7 @@ const gameBoard = (()=> {
     }
 
     const _reset =()=> {
-        _gameStats = [
+        _board = [
             [null,null,null],
             [null,null,null],
             [null,null,null]
@@ -176,22 +225,19 @@ const gameBoard = (()=> {
         _turnCount = 0
         _blurBoard()
         setTimeout(()=>{
+            console.log('reset')
             _render()
             _playerTurn()
             _unBlurBoard()
         },3000)
     }
     
-    const getGameStats = () => {
-        return _gameStats
-    }
-    
     const _blurBoard = () => {
-        _board.classList.add('blur')
+        _boardContainer.classList.add('blur')
     }
 
     const _unBlurBoard = () => {
-        _board.classList.remove('blur')
+        _boardContainer.classList.remove('blur')
     }
     
     const resumeGame = () => {
@@ -210,23 +256,26 @@ const gameBoard = (()=> {
     _playerTurn()
 
     return {
-        getGameStats,
+        players,
+        setPlayers,
+        board,
+        setBoard,
+        turnCount,
+        setTurnCount,
+        currentPlayer,
+        setCurrentPlayer,
         resumeGame,
         registeringPlayerMove,
         checkWinner,
-        turnOf
     }
 })()
 
 const ai = (() => {
-    let _availableMoves = []
-    let _selectedMoves = ''
-
-    const _updateAvailableMoves = (gameStats) => {
+    const _updateAvailableMoves = (board) => {
         _availableMoves = []
-        for (let i = 0; i < gameStats.length; i++){
-            for (let j = 0; j < gameStats[i].length; j++){
-                if (gameStats[i][j] === null) {
+        for (let i = 0; i < board.length; i++){
+            for (let j = 0; j < board[i].length; j++){
+                if (board[i][j] === null) {
                     const aiNextMove = [i,j]
                     _availableMoves.push(aiNextMove)
                 }
@@ -236,17 +285,17 @@ const ai = (() => {
     }
 
     const nextMove = (arg) => {
-        _updateAvailableMoves(gameBoard.getGameStats())
+        let _selectedMoves = []
         switch (true) {
             case arg === 'easy':
                 console.log('test')
-                _easy()
+                _selectedMoves = _easy(gameBoard.board())
                 break
             case arg === 'random':
-                _random()
+                _selectedMoves = _random(gameBoard.board())
                 break
             case arg === 'impossible':
-                _impossible(gameBoard.getGameStats(), gameBoard.turnOf())
+                _selectedMoves = _impossible(gameBoard.board(), gameBoard.currentPlayer())
                 break
         }
         const [row, col] = [_selectedMoves[0], _selectedMoves[1]]
@@ -255,13 +304,13 @@ const ai = (() => {
         },1000)
     }
 
-    const _easy = () => {
-        console.log(_selectedMoves)
-        _selectedMoves = _availableMoves[0]
+    const _easy = (board) => {
+        return _updateAvailableMoves(gameBoard.board())[0]
     }
 
     const _random = () => {
-        return _selectedMoves = _availableMoves[Math.floor(Math.random() * _availableMoves.length)]
+        let _availableMoves = _updateAvailableMoves(gameBoard.board())
+        return _availableMoves[Math.floor(Math.random() * _availableMoves.length)]
     }
 
     const minMax = (board, isMaximizing, turn) => {
@@ -300,20 +349,23 @@ const ai = (() => {
 })()
 
 const notification = (()=> {
-    // variables
-    let notif = ''
+    let _notif = ''
     
     // cache DOM
     const notifBoard = document.querySelector('.announcement')
     
     // methods
-    const setNotif =(arg)=> {
-        notif = arg
+    const notif = () => {
+        return _notif
+    }
+
+    const setNotif = (arg)=> {
+        _notif = arg
         _render()
     }
     
     const _render =()=> {
-        notifBoard.textContent = notif
+        notifBoard.textContent = _notif
         setTimeout(()=>{
             notifBoard.textContent = ''
         },3000)
@@ -322,7 +374,8 @@ const notification = (()=> {
     // bind events
     // init
     return {
-        setNotif
+        notif,
+        setNotif,
     }
 })()
 
