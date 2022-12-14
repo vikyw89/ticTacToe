@@ -1,7 +1,7 @@
 const player = (arg) => {
     const _playerName = arg
     let _score = 0
-    let _brain = 'human'
+    let _brain = 'random'
 
     // cache DOM
     const _playerScore = document.querySelector(`.player-${_playerName.toLowerCase()}-score`)
@@ -43,6 +43,128 @@ const player = (arg) => {
 const playerX = player('X')
 const playerO = player('O')
 
+const ai = (() => {
+    const _updateAvailableMoves = (board) => {
+        _availableMoves = []
+        for (let i = 0; i < board.length; i++){
+            for (let j = 0; j < board[i].length; j++){
+                if (board[i][j] === null) {
+                    const aiNextMove = [i,j]
+                    _availableMoves.push(aiNextMove)
+                }
+            }
+        }
+        return _availableMoves
+    }
+
+    const nextMove = (arg) => {
+        let [board, brain, currentPlayer] = arg
+        let _selectedMoves = []
+        switch (true) {
+            case brain === 'easy':
+                console.log('test')
+                _selectedMoves = _easy(board)
+                break
+            case brain === 'random':
+                _selectedMoves = _random(board)
+                break
+            case brain === 'impossible':
+                _selectedMoves = _impossible(board, currentPlayer)
+                break
+        }
+        const [row, col] = [_selectedMoves[0], _selectedMoves[1]]
+        setTimeout(()=>{
+            gameBoard.registeringPlayerMove([row, col])
+        },1000)
+    }
+
+    const _easy = (board) => {
+        return _updateAvailableMoves(board)[0]
+    }
+
+    const _random = (board) => {
+        let _availableMoves = _updateAvailableMoves(board)
+        return _availableMoves[Math.floor(Math.random() * _availableMoves.length)]
+    }
+
+    const minMax = (board, isMaximizing, turn) => {
+        const value = {
+            true: 1,
+            false: -1,
+        }
+        let result = gameBoard.checkWinner(board, turn)
+        return -1
+    }
+
+    const _impossible = (board, turn) => {
+        console.log(board, turn)
+        let maxScore = -Infinity
+        let bestMove = []
+
+        for (let i = 0; i < board.length; i++) {
+            for (let j = 0; j < board[i].length; j++) {
+                if (board[i][j] === null) {
+                    board[i][j] = `${turn}`
+                    // check for score for particular move
+                    let score = minMax(board, true, turn)
+                    board[i][j] = null
+                    if (score > maxScore) {
+                        maxScore = score
+                        bestMove = [i,j]
+                    }
+                }
+            }
+        }
+        return _selectedMoves = bestMove
+    }
+    const checkWinner = (board, player) =>{
+        // check row and col
+        for (let i = 0; i < board.length; i++){
+            checkCol:
+            for (let j = 0; j < board[i].length; j++){
+                switch (true) {
+                    case (board[i][j] !== player):
+                        break checkCol
+                        case j === board[i].length-1:
+                            return true
+                        }
+                    }
+            checkRow:
+            for (let j = 0; j < board[i].length; j++){
+                switch (true) {
+                    case (board[j][i] !== player):
+                        break checkRow
+                    case j === board[i].length-1:
+                        return true
+                    }
+                }
+                checkDia1:
+                for (let j = 0; j < board[i].length; j++){
+                    switch (true) {
+                        case (board[j][j] !== player):
+                            break checkDia1
+                            case j === board[i].length-1:
+                                return true
+                            }
+                        }
+            checkDia2:
+            for (let j = 0; j < board[i].length; j++){
+                switch (true) {
+                    case (board[board[i].length - 1 - j][j] !== player):
+                        break checkDia2
+                    case j === board[i].length-1:
+                        return true
+                }
+            }
+        }
+        return false
+    }
+    return {
+        nextMove,
+        checkWinner
+    }
+})()
+
 const gameBoard = (()=> {
     let _players = ['X', 'O']
     let _board = [
@@ -52,6 +174,7 @@ const gameBoard = (()=> {
     ]
     let _turnCount = 0
     let _currentPlayer = _players[_turnCount]
+    let _blurToggle = false
 
     // cache DOM
     const _boardContainer = document.querySelector('.tictactoe-container')
@@ -89,6 +212,89 @@ const gameBoard = (()=> {
         return _turnCount
     }
 
+    
+    const currentPlayer = () => {
+        return _currentPlayer
+    }
+    
+    const setCurrentPlayer = (arg) => {
+        _currentPlayer = arg
+        _render()
+        return _currentPlayer
+    }
+    
+    const _playerTurn = () => {
+        const turn = currentPlayer()
+        switch (true){
+            case turn === 'X' && playerX.brain() === 'human':
+                _enableClick()
+                break
+            case turn === 'O' && playerO.brain() === 'human':
+                _enableClick()
+                break
+            case turn === 'X' && playerX.brain() !== 'human':
+                ai.nextMove([_board, playerX.brain(), _currentPlayer])
+                break
+            case turn === 'O' && playerO.brain() !== 'human':
+                ai.nextMove([_board, playerO.brain(), _currentPlayer])
+            break
+        }
+    }
+    
+    const _enableClick = () => {
+        _boardContainer.addEventListener('click', _clickHandler)
+    }
+    
+    const _preventClick = () => {
+        _boardContainer.removeEventListener('click', _clickHandler)
+    }
+    
+    const registeringPlayerMove = (arg) => {
+        const [row, col] = arg
+        if (_board[row][col] !== null) return _enableClick()
+        const turn = _players[(_turnCount)%2]
+        _board[row][col] = turn
+        setTurnCount(_turnCount + 1)
+        _render()
+        if (_turnCount < 5) return _playerTurn()
+        switch (true) {
+            case ai.checkWinner(_board, turn) && turn === 'X':
+                notification.setNotif('X WON THIS ROUND !')
+                playerX.setScore()
+                _reset()
+                break
+            case ai.checkWinner(_board, turn) && turn === 'O':
+                notification.setNotif('O WON THIS ROUND !')
+                playerO.setScore()
+                _reset()
+                break
+            case ai.checkWinner(_board, turn) === false && _turnCount === 9:
+                notification.setNotif('DRAW !')
+                _reset()
+                break
+            default:
+                _playerTurn()
+                break
+        }
+    }
+                    
+    
+    const _reset =()=> {
+        _board = [
+            [null,null,null],
+            [null,null,null],
+            [null,null,null]
+        ]
+        _turnCount = 0
+        blurToggle()
+        setTimeout(()=>{
+            console.log('reset')
+            _render()
+            _playerTurn()
+            blurToggle()
+        },3000)
+    }
+
     const _render = () => {
         _cells.forEach(element => {
             const [row,col] = [element.dataset.row, element.dataset.col]
@@ -108,141 +314,18 @@ const gameBoard = (()=> {
         })
     }
     
-    const currentPlayer = () => {
-        return _currentPlayer
-    }
-
-    const setCurrentPlayer = (arg) => {
-        _currentPlayer = arg
-        _render()
-        return _currentPlayer
-    }
-
-    const _playerTurn = () => {
-        const turn = currentPlayer()
-        switch (true){
-            case turn === 'X' && playerX.brain() === 'human':
-                _enableClick()
-                break
-            case turn === 'O' && playerO.brain() === 'human':
-                _enableClick()
-                break
-            case turn === 'X' && playerX.brain() !== 'human':
-                ai.nextMove(playerX.brain())
-                break
-            case turn === 'O' && playerO.brain() !== 'human':
-                ai.nextMove(playerO.brain())
-                break
+    const blurToggle = () => {
+        if (_blurToggle === false) {
+            _blurToggle = true
+            _boardContainer.classList.add('blur')
+        } else {
+            _blurToggle = false
+            _boardContainer.classList.remove('blur')
         }
-    }
-    
-    const _enableClick = () => {
-        _boardContainer.addEventListener('click', _clickHandler)
-    }
-    
-    const _preventClick = () => {
-        _boardContainer.removeEventListener('click', _clickHandler)
-    }
-
-    const registeringPlayerMove = (arg) => {
-        const [row, col] = arg
-        if (_board[row][col] !== null) return _enableClick()
-        const turn = _players[(_turnCount)%2]
-        _board[row][col] = turn
-        setTurnCount(_turnCount + 1)
-        _render()
-        if (_turnCount < 5) return _playerTurn()
-        switch (true) {
-            case checkWinner(_board, turn) && turn === 'X':
-                notification.setNotif('X WON THIS ROUND !')
-                playerX.setScore()
-                _reset()
-                break
-            case checkWinner(_board, turn) && turn === 'O':
-                notification.setNotif('O WON THIS ROUND !')
-                playerO.setScore()
-                _reset()
-                break
-            case checkWinner(_board, turn) === false && _turnCount === 9:
-                notification.setNotif('DRAW !')
-                _reset()
-                break
-            default:
-                _playerTurn()
-                break
-        }
-    }
-    
-    const checkWinner = (board, player) =>{
-        // check row and col
-        for (let i = 0; i < board.length; i++){
-            checkCol:
-            for (let j = 0; j < board[i].length; j++){
-                switch (true) {
-                    case (board[i][j] !== player):
-                        break checkCol
-                    case j === board[i].length-1:
-                        return true
-                }
-            }
-            checkRow:
-            for (let j = 0; j < board[i].length; j++){
-                switch (true) {
-                    case (board[j][i] !== player):
-                        break checkRow
-                    case j === board[i].length-1:
-                        return true
-                }
-            }
-            checkDia1:
-            for (let j = 0; j < board[i].length; j++){
-                switch (true) {
-                    case (board[j][j] !== player):
-                        break checkDia1
-                    case j === board[i].length-1:
-                        return true
-                }
-            }
-            checkDia2:
-            for (let j = 0; j < board[i].length; j++){
-                switch (true) {
-                    case (board[board[i].length - 1 - j][j] !== player):
-                        break checkDia2
-                    case j === board[i].length-1:
-                        return true
-                }
-            }
-        }
-        return false
-    }
-
-    const _reset =()=> {
-        _board = [
-            [null,null,null],
-            [null,null,null],
-            [null,null,null]
-        ]
-        _turnCount = 0
-        _blurBoard()
-        setTimeout(()=>{
-            console.log('reset')
-            _render()
-            _playerTurn()
-            _unBlurBoard()
-        },3000)
-    }
-    
-    const _blurBoard = () => {
-        _boardContainer.classList.add('blur')
-    }
-
-    const _unBlurBoard = () => {
-        _boardContainer.classList.remove('blur')
-    }
+    } 
     
     const resumeGame = () => {
         _preventClick()
-        _turnCount--
         _playerTurn()
     }
 
@@ -266,85 +349,7 @@ const gameBoard = (()=> {
         setCurrentPlayer,
         resumeGame,
         registeringPlayerMove,
-        checkWinner,
-    }
-})()
-
-const ai = (() => {
-    const _updateAvailableMoves = (board) => {
-        _availableMoves = []
-        for (let i = 0; i < board.length; i++){
-            for (let j = 0; j < board[i].length; j++){
-                if (board[i][j] === null) {
-                    const aiNextMove = [i,j]
-                    _availableMoves.push(aiNextMove)
-                }
-            }
-        }
-        return _availableMoves
-    }
-
-    const nextMove = (arg) => {
-        let _selectedMoves = []
-        switch (true) {
-            case arg === 'easy':
-                console.log('test')
-                _selectedMoves = _easy(gameBoard.board())
-                break
-            case arg === 'random':
-                _selectedMoves = _random(gameBoard.board())
-                break
-            case arg === 'impossible':
-                _selectedMoves = _impossible(gameBoard.board(), gameBoard.currentPlayer())
-                break
-        }
-        const [row, col] = [_selectedMoves[0], _selectedMoves[1]]
-        setTimeout(()=>{
-            gameBoard.registeringPlayerMove([row, col])
-        },1000)
-    }
-
-    const _easy = (board) => {
-        return _updateAvailableMoves(gameBoard.board())[0]
-    }
-
-    const _random = () => {
-        let _availableMoves = _updateAvailableMoves(gameBoard.board())
-        return _availableMoves[Math.floor(Math.random() * _availableMoves.length)]
-    }
-
-    const minMax = (board, isMaximizing, turn) => {
-        const value = {
-            true: 1,
-            false: -1,
-        }
-        let result = gameBoard.checkWinner(board, turn)
-        return -1
-    }
-
-    const _impossible = (board, turn) => {
-        console.log(board, turn)
-        let maxScore = -Infinity
-        let bestMove = []
-
-        for (let i = 0; i < board.length; i++) {
-            for (let j = 0; j < board[i].length; j++) {
-                if (board[i][j] === null) {
-                    board[i][j] = `${turn}`
-                    // check for score for particular move
-                    let score = minMax(board, true, turn)
-                    board[i][j] = null
-                    if (score > maxScore) {
-                        maxScore = score
-                        bestMove = [i,j]
-                    }
-                }
-            }
-        }
-        return _selectedMoves = bestMove
-    }
-    return {
-        nextMove
+        blurToggle
     }
 })()
 
@@ -403,7 +408,7 @@ const settings = (() => {
     brainSelection.forEach(element=> {
         element.addEventListener('change', changeHandler)
     })
-
+    // init
     return {
     }
 })()
