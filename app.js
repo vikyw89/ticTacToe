@@ -1,9 +1,12 @@
 const pubSub = (() => {
     let events = {}
+    
+    // methods
     const on = (eventName, fn) => {
       events[eventName] = events[eventName] || [];
       events[eventName].push(fn);
     }
+
     const off = (eventName, fn) => {
       if (events[eventName]) {
         for (let i = 0; i < events[eventName].length; i++) {
@@ -14,6 +17,7 @@ const pubSub = (() => {
         }
       }
     }
+
     const emit = (eventName, data) => {
       if (events[eventName]) {
         events[eventName].forEach(function(fn) {
@@ -21,6 +25,7 @@ const pubSub = (() => {
         });
       }
     }
+
     return {
         on,
         off,
@@ -30,14 +35,37 @@ const pubSub = (() => {
 
 const player = (arg) => {
     const name = arg
+    let brain = 'human'
     let score = 0
 
-    // cache DOM
+    // cache dom
     const playerScore = document.querySelector(`.player-${name.toLowerCase()}-score`)
 
     // methods
     const render = () => {
         playerScore.textContent = score
+    }
+
+    const playerMove = (arg) => {
+        if (arg !== name) return
+        switch (true) {
+            case brain === 'human':
+                console.log('human')
+                pubSub.emit('humanTurn')
+                break
+            case brain === 'easy-ai':
+                setTimeout(()=>{
+                    console.log('easy-ai')
+                    pubSub.emit('easyAiTurn')
+                },1000)
+                break
+            case brain === 'random-ai':
+                setTimeout(()=>{
+                    console.log('random-ai')
+                    pubSub.emit('randomAiTurn')
+                },1000)
+                break
+        }
     }
 
     const setScore = (winner)=> {
@@ -47,13 +75,17 @@ const player = (arg) => {
         }
     }
 
-    const updateRole = () => {
-        
+    const updateBrain = (arg) => {
+        brain = arg[name.toLowerCase()] ?? brain
     }
+
+    // events handler
 
     // bind events
     pubSub.on('playerWin', setScore)
-    
+    pubSub.on('playerTurn', playerMove)
+    pubSub.on('playerBrain', updateBrain)
+
     // init
     render()
 }
@@ -61,8 +93,8 @@ const player = (arg) => {
 const playerX = player('X')
 const playerO = player('O')
 
-
 const gameBoard = (()=> {
+    // variables
     let gameStats = [
         [null,null,null],
         [null,null,null],
@@ -95,29 +127,10 @@ const gameBoard = (()=> {
         }
     }
 
-    const boardClickHandler =(e)=> {
-        if (gameStats[e.target.dataset.row][e.target.dataset.col] !== null) return 
-        const playerTurn = players[turnCount%2]
+    const playerTurn = () => {
+        const turn = players[turnCount%2]
         turnCount++
-        gameStats[e.target.dataset.row][e.target.dataset.col] = playerTurn
-        render()
-        if (turnCount < 5) return
-        switch (true) {
-            case checkWinner() && playerTurn === 'X':
-                pubSub.emit('playerWin', 'X')
-                pubSub.emit('info', 'X won this round !')
-                reset()
-                break
-            case checkWinner() && playerTurn === 'O':
-                pubSub.emit('playerWin', 'O')
-                pubSub.emit('info', 'O won this round !')
-                reset()
-                break
-            case checkWinner() === false && turnCount === 9:
-                pubSub.emit('info', 'Draw !')
-                reset()
-                break
-        }
+        pubSub.emit('playerTurn', turn)
     }
 
     const reset =()=> {
@@ -130,6 +143,7 @@ const gameBoard = (()=> {
         setTimeout(()=>{
             render()
         },3000)
+        playerTurn()
     }
 
     const checkWinner =() =>{
@@ -177,34 +191,115 @@ const gameBoard = (()=> {
     }
 
     const blur = (arg) => {
-        console.log('blur')
         board.classList.add('blur')
         setTimeout(()=>{
             board.classList.remove('blur')
         },arg)
     }
-    
-    const preventClick = (arg) => {
-        board.removeEventListener('click', boardClickHandler)
-        setTimeout(()=>{
-            board.addEventListener('click', boardClickHandler)
-        },arg)
+
+    const getGameStats = () => {
+        return gameStats
     }
 
-    const logger = (arg) => {
-        console.log(arg)
+    const registeringPlayerMove = (e) => {
+        board.removeEventListener('click', registeringPlayerMove)
+        if (gameStats[e.target.dataset.row][e.target.dataset.col] !== null) return waitingForMove()
+        const turn = players[(turnCount -1 )%2]
+        gameStats[e.target.dataset.row][e.target.dataset.col] = turn
+        render()
+        if (turnCount < 5) return playerTurn()
+        switch (true) {
+            case checkWinner() && turn === 'X':
+                pubSub.emit('playerWin', 'X')
+                pubSub.emit('info', 'X won this round !')
+                reset()
+                break
+            case checkWinner() && turn === 'O':
+                pubSub.emit('playerWin', 'O')
+                pubSub.emit('info', 'O won this round !')
+                reset()
+                break
+            case checkWinner() === false && turnCount === 9:
+                pubSub.emit('info', 'Draw !')
+                reset()
+                break
+            default:
+                playerTurn()
+                break
+        }
+    }
+
+    const waitingForMove = () => {
+        board.addEventListener('click', registeringPlayerMove)
     }
 
     // bind events
-    board.addEventListener('click', boardClickHandler)
+    // board.addEventListener('click', boardClickHandler)
     pubSub.on('blur', blur)
-    pubSub.on('preventClick', preventClick)
-    
+    pubSub.on('playerTurn', waitingForMove)
+    pubSub.on('playerBrain', reset)
+
     // init
     render()
+    playerTurn()
 
-    pubSub.on('playerXRoleUpdate', logger)
-    pubSub.on('playerORoleUpdate', logger)
+    return {
+        getGameStats
+    }
+})()
+
+const easyAI = (() => {
+    // variables
+
+    // cacheDOM
+    // methods
+    const findNextMove = () => {
+        const gameStats = gameBoard.getGameStats()
+        for (let i = 0; i < gameStats.length; i++){
+            for (let j = 0; j < gameStats[i].length; j++){
+                if (gameStats[i][j] === null) {
+                    const aiNextMove = document.querySelector(`div[data-row='${i}'][data-col='${j}']`)
+                    pubSub.emit('playerTurn')
+                    aiNextMove.click()
+                    return
+                }
+            }
+        }
+
+    }
+
+    // bind events
+    pubSub.on('easyAiTurn', findNextMove)
+    // init
+})()
+
+const randomAI = (() => {
+    // variables
+    let gameStats = gameBoard.getGameStats()
+    let availableMoves = []
+    // cacheDOM
+    // methods
+    const findNextMove = () => {
+        console.log(availableMoves)
+
+    }
+
+    const updateAvailableMove = () => {
+        gameStats = gameBoard.getGameStats()
+        for (let i = 0; i < gameStats.length; i++){
+            for (let j = 0; j < gameStats[i].length; j++){
+                if (gameStats[i][j] === null) {
+                    availableMoves.push([i,j])
+                }
+            }
+        }
+        findNextMove()
+    }
+
+    // bind events
+    pubSub.on('randomAiTurn', updateAvailableMove)
+
+    // init
 })()
 
 const infoBoard = (()=> {
@@ -237,29 +332,23 @@ const infoBoard = (()=> {
 
 const settings = (() => {
     // variables
-    let playerXRole = 'human'
-    let playerORole = 'human'
+    let playerXBrain = 'human'
+    let playerOBrain = 'human'
 
     // cache dom
     const roleSelection = document.querySelectorAll('.settings > * > select')
 
     // method
-    const updateRole = (e) => {
-        switch (true) {
-            case e.target.id === 'player-x-setting':
-                playerXRole = e.target.value
-                pubSub.emit('playerXRoleUpdate', playerXRole)
-                break
-            case e.target.id === 'player-o-setting':
-                playerORole = e.target.value
-                pubSub.emit('playerORoleUpdate', playerORole)
-                break
-        }
+    const updateBrain = (e) => {
+        const [player] = e.target.id.match(/(?<=[-])[ox](?=[-])/g)
+        const brain = e.target.value
+        const updatedBrain = {[player]:brain}
+        pubSub.emit('playerBrain', updatedBrain)
     }
 
     // bind events
     roleSelection.forEach(element=> {
-        element.addEventListener('input', updateRole)
+        element.addEventListener('change', updateBrain)
     })
     // init
 })()
