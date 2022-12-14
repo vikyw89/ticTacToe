@@ -63,7 +63,6 @@ const ai = (() => {
         let _selectedMoves = []
         switch (true) {
             case brain === 'easy':
-                console.log('test')
                 _selectedMoves = _easy(board)
                 break
             case brain === 'random':
@@ -176,6 +175,7 @@ const gameBoard = (()=> {
     let _turnCount = 0
     let _currentPlayer = _players[_turnCount]
     let _blurToggle = false
+    let _cellClickToggle = false
 
     // cache DOM
     const _boardContainer = document.querySelector('.tictactoe-container')
@@ -228,10 +228,10 @@ const gameBoard = (()=> {
         const turn = currentPlayer()
         switch (true){
             case turn === 'X' && playerX.brain() === 'human':
-                _enableClick()
+                cellClickToggle()
                 break
             case turn === 'O' && playerO.brain() === 'human':
-                _enableClick()
+                cellClickToggle()
                 break
             case turn === 'X' && playerX.brain() !== 'human':
                 ai.nextMove([_board, playerX.brain(), _currentPlayer])
@@ -242,17 +242,19 @@ const gameBoard = (()=> {
         }
     }
     
-    const _enableClick = () => {
-        _boardContainer.addEventListener('click', _clickHandler)
-    }
-    
-    const _preventClick = () => {
-        _boardContainer.removeEventListener('click', _clickHandler)
+    const cellClickToggle = () => {
+        if (_cellClickToggle === false) {
+            _cellClickToggle = true
+            _boardContainer.addEventListener('pointerdown', _clickHandler)
+        } else {
+            _cellClickToggle = false
+            _boardContainer.removeEventListener('pointerdown', _clickHandler)
+        }
     }
     
     const registeringPlayerMove = (arg) => {
         const [row, col] = arg
-        if (_board[row][col] !== null) return _enableClick()
+        if (_board[row][col] !== null) return _playerTurn()
         const turn = _players[(_turnCount)%2]
         _board[row][col] = turn
         setTurnCount(_turnCount + 1)
@@ -325,14 +327,15 @@ const gameBoard = (()=> {
     } 
     
     const resumeGame = () => {
-        _preventClick()
+        cellClickToggle()
         _playerTurn()
     }
 
     const _clickHandler = (e) => {
-        _preventClick()
+        cellClickToggle()
         const [row, col] = [e.target.dataset.row, e.target.dataset.col]
         registeringPlayerMove([row, col])
+        console.log(row,col)
     }
 
     _render()
