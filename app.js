@@ -12,6 +12,7 @@ const player = (arg) => {
     }
 
     const setScore = (arg)=> {
+        console.log(_score)
         _score = arg
         _render()
         return _score
@@ -260,12 +261,12 @@ const gameBoard = (()=> {
         switch (true) {
             case ai.checkWinner(_board, turn) && turn === 'X':
                 notification.setNotif('X WON THIS ROUND !')
-                playerX.setScore()
+                playerX.setScore(playerX.score() + 1)
                 _reset()
                 break
             case ai.checkWinner(_board, turn) && turn === 'O':
                 notification.setNotif('O WON THIS ROUND !')
-                playerO.setScore()
+                playerO.setScore(playerO.score() + 1)
                 _reset()
                 break
             case ai.checkWinner(_board, turn) === false && _turnCount === 9:
@@ -288,7 +289,6 @@ const gameBoard = (()=> {
         _turnCount = 0
         blurToggle()
         setTimeout(()=>{
-            console.log('reset')
             _render()
             _playerTurn()
             blurToggle()
