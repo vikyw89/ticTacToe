@@ -335,7 +335,6 @@ const gameBoard = (()=> {
         cellClickToggle()
         const [row, col] = [e.target.dataset.row, e.target.dataset.col]
         registeringPlayerMove([row, col])
-        console.log(row,col)
     }
 
     _render()
