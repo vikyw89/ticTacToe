@@ -117,47 +117,87 @@ const ai = (() => {
         return _selectedMoves = bestMove
     }
     const checkWinner = (board, player) =>{
-        // check row and col
+        const opponent = player === 'X'
+            ? 'O'
+            : 'X'
+        const available = 'available'
+
+        let tally = {
+            [player]: 0,
+            [opponent]: 0,
+            [available]: 0
+        }
         for (let i = 0; i < board.length; i++){
-            checkCol:
+            // checking row
             for (let j = 0; j < board[i].length; j++){
                 switch (true) {
-                    case (board[i][j] !== player):
-                        break checkCol
-                        case j === board[i].length-1:
-                            return true
-                        }
-                    }
-            checkRow:
-            for (let j = 0; j < board[i].length; j++){
-                switch (true) {
-                    case (board[j][i] !== player):
-                        break checkRow
-                    case j === board[i].length-1:
-                        return true
-                    }
-                }
-                checkDia1:
-                for (let j = 0; j < board[i].length; j++){
-                    switch (true) {
-                        case (board[j][j] !== player):
-                            break checkDia1
-                            case j === board[i].length-1:
-                                return true
-                            }
-                        }
-            checkDia2:
-            for (let j = 0; j < board[i].length; j++){
-                switch (true) {
-                    case (board[board[i].length - 1 - j][j] !== player):
-                        break checkDia2
-                    case j === board[i].length-1:
-                        return true
+                    case board[i][j] === player:
+                        tally[player]++
+                        break
+                    case board[i][j] === opponent:
+                        tally[opponent]++
+                        break
+                    default:
+                        tally[available]++
+                        break
                 }
             }
+            if (tally[player] === 3) return 'win'
+            else if (tally[opponent] === 3) return 'lose'
+            tally[player] = 0
+            tally[opponent] = 0
+
+            // checking col
+            for (let j = 0; j < board[i].length; j++){
+                switch (true) {
+                    case board[j][i] === player:
+                        tally[player]++
+                        break
+                    case board[j][i] === opponent:
+                        tally[opponent]++
+                        break
+                }
+            }
+            if (tally[player] === 3) return 'win'
+            else if (tally[opponent] === 3) return 'lose'
+            tally[player] = 0
+            tally[opponent] = 0
         }
-        return false
+        // checking draw
+        if (tally[available] === 0) return 'draw'
+
+
+        // checking diagonal top left to bottom right
+        for (let i = 0; i < board.length; i++) {
+            switch (true) {
+                case board[i][i] === player:
+                    tally[player]++
+                    break
+                case board[i][i] === opponent:
+                    tally[opponent]++
+                    break
+            }
+        }
+        if (tally[player] === 3) return 'win'
+        else if (tally[opponent] === 3) return 'lose'
+        tally[player] = 0
+        tally[opponent] = 0
+
+        // checking diagonal bottom left to top right
+        for (let i = 0; i < board.length; i++) {
+            switch (true) {
+                case board[board.length-1-i][i] === player:
+                    tally[player]++
+                    break
+                case board[board.length-1-i][i] === opponent:
+                    tally[opponent]++
+                    break
+            }
+        }
+        if (tally[player] === 3) return 'win'
+        else if (tally[opponent] === 3) return 'lose'
     }
+
     return {
         nextMove,
         checkWinner
@@ -260,17 +300,14 @@ const gameBoard = (()=> {
         _render()
         if (_turnCount < 5) return _playerTurn()
         switch (true) {
-            case ai.checkWinner(_board, turn) && turn === 'X':
-                notification.setNotif('X WON THIS ROUND !')
-                playerX.setScore(playerX.score() + 1)
+            case ai.checkWinner(_board, turn) === 'win':
+                notification.setNotif(`${turn} WON THIS ROUND !`)
+                turn === 'X'
+                    ? playerX.setScore(playerX.score() + 1)
+                    : playerO.setScore(playerO.score() + 1)
                 _reset()
                 break
-            case ai.checkWinner(_board, turn) && turn === 'O':
-                notification.setNotif('O WON THIS ROUND !')
-                playerO.setScore(playerO.score() + 1)
-                _reset()
-                break
-            case ai.checkWinner(_board, turn) === false && _turnCount === 9:
+            case ai.checkWinner(_board, turn) === 'draw':
                 notification.setNotif('DRAW !')
                 _reset()
                 break
