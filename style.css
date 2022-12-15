@@ -129,7 +129,6 @@ footer {
     border-top: 4px solid var(--darkreader-border)
 }
 
-
 .blur {
     filter: blur(5px);
 }
