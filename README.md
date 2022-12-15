@@ -4,6 +4,17 @@ Live Preview : https://vikyw89.github.io/ticTacToe/
 
 Made by Viky for The Odin Project 2022
 
+changelog:
+
+20221215
+fixed bugs of error when there are multiple fast clicks
+prevent highlights of text and element on the game
+fixed bugs when changing mode
+reworked the AI priorities
+These AI will analyze 1 step based on different strategy combination
+easy => random moves
+normal => aim for winning ?? easyAI
+hard = > aim for winning ?? prevent enemy from winning ?? easyAI
 
 <ol>
   <li>Set up your project with HTML, CSS and Javascript files and get the Git repo all set up.</li>
