@@ -354,7 +354,7 @@ const gameBoard = (()=> {
 
 
     const _playerTurn = () => {
-        setCellAngle(((_cellsAngle+1)*(playerO.score()-playerX.score()))%360)
+        setCellAngle(_cellsAngle + (playerO.score()-playerX.score()))
         const turn = currentPlayer()
         switch (true){
             case turn === 'X' && playerX.brain() === 'human':
