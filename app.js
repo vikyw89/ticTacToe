@@ -293,10 +293,12 @@ const gameBoard = (()=> {
     let _turnCount = 0
     let _currentPlayer = _players[_turnCount]
     let _blurToggle = false
+    let _cellsAngle = 0
 
     // cache DOM
     const _boardContainer = document.querySelector('.tictactoe-container')
     const _cells = document.querySelectorAll('.cell')
+    const r = document.querySelector(':root');
     
     // methods
     const players = () => {
@@ -329,7 +331,6 @@ const gameBoard = (()=> {
         _render()
         return _turnCount
     }
-
     
     const currentPlayer = () => {
         return _currentPlayer
@@ -341,7 +342,20 @@ const gameBoard = (()=> {
         return _currentPlayer
     }
     
+    const cellsAngle = () => {
+        return _cellsAngle
+    }
+
+    const setCellAngle = (arg) => {
+        _cellsAngle = arg
+        r.style.setProperty('--cells-rotate', `${arg}deg`);
+        _render()
+        return _cellsAngle
+    }
+
+
     const _playerTurn = () => {
+        setCellAngle((playerO.score() - playerX.score())*2)
         const turn = currentPlayer()
         switch (true){
             case turn === 'X' && playerX.brain() === 'human':
@@ -449,12 +463,17 @@ const gameBoard = (()=> {
         _reset()
     }
 
+    // const _populateBoard = (size) => {
+
+    // }
+
     const _clickHandler = (e) => {
         _disableClick()
         const [row, col] = [e.target.dataset.row, e.target.dataset.col]
         registeringPlayerMove([row, col])
     }
 
+    // init
     _render()
     _playerTurn()
 
@@ -467,9 +486,11 @@ const gameBoard = (()=> {
         setTurnCount,
         currentPlayer,
         setCurrentPlayer,
+        cellsAngle,
+        setCellAngle,
         resumeGame,
         registeringPlayerMove,
-        blurToggle
+        blurToggle,
     }
 })()
 
