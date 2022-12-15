@@ -1,7 +1,7 @@
 const player = (arg) => {
     const _playerName = arg
     let _score = 0
-    let _brain = 'random'
+    let _brain = 'human'
 
     // cache DOM
     const _playerScore = document.querySelector(`.player-${_playerName.toLowerCase()}-score`)
@@ -42,6 +42,8 @@ const player = (arg) => {
 
 const playerX = player('X')
 const playerO = player('O')
+playerX.setBrain(document.querySelector('#player-x-setting').value)
+playerO.setBrain(document.querySelector('#player-o-setting').value)
 
 const ai = (() => {
     const _updateAvailableMoves = (board) => {
@@ -64,58 +66,135 @@ const ai = (() => {
             case brain === 'easy':
                 _selectedMoves = _easy(board)
                 break
-            case brain === 'random':
-                _selectedMoves = _random(board)
+            case brain === 'normal':
+                _selectedMoves = _normal(board, currentPlayer)
+                break
+            case brain === 'hard':
+                _selectedMoves = _hard(board, currentPlayer)
                 break
             case brain === 'impossible':
                 _selectedMoves = _impossible(board, currentPlayer)
                 break
         }
-        const [row, col] = [_selectedMoves[0], _selectedMoves[1]]
-        setTimeout(()=>{
-            gameBoard.registeringPlayerMove([row, col])
-        },1000)
+        return [_selectedMoves[0], _selectedMoves[1]]
     }
 
     const _easy = (board) => {
-        return _updateAvailableMoves(board)[0]
+        const moves = _updateAvailableMoves(board)
+        return moves[Math.floor(Math.random() * moves.length)]
     }
 
-    const _random = (board) => {
-        let _availableMoves = _updateAvailableMoves(board)
-        return _availableMoves[Math.floor(Math.random() * _availableMoves.length)]
+    const _normal = (board, player) => {
+        return aimWin(board,player) ?? _easy(board)
     }
 
-    const minMax = (board, isMaximizing, turn) => {
-        const value = {
-            true: 1,
-            false: -1,
-        }
-        let result = gameBoard.checkWinner(board, turn)
-        return -1
+    const _hard = (board, player) => {
+        // make a move
+        // choose if there's a winner
+        return aimWin(board,player) ?? aimPreventLose(board, player) ?? _easy(board)
     }
 
-    const _impossible = (board, turn) => {
-        console.log(board, turn)
-        let maxScore = -Infinity
-        let bestMove = []
-
-        for (let i = 0; i < board.length; i++) {
+    const aimWin = (board, player) => {
+        for (let i = 0; i < board.length ; i++) {
             for (let j = 0; j < board[i].length; j++) {
                 if (board[i][j] === null) {
-                    board[i][j] = `${turn}`
-                    // check for score for particular move
-                    let score = minMax(board, true, turn)
-                    board[i][j] = null
-                    if (score > maxScore) {
-                        maxScore = score
-                        bestMove = [i,j]
+                    board[i][j] = player
+                    if (checkWinner(board, player) === 'win') {
+                        console.log(`Player ${player} aimWin at`, i,j)
+                        board[i][j] = null
+                        return [i,j]
                     }
+                    board[i][j] = null
                 }
             }
         }
-        return _selectedMoves = bestMove
     }
+
+    const aimPreventLose = (board, player) => {
+        const opponent = player === 'X'
+            ? 'O'
+            : 'X'
+        for (let i = 0; i < board.length ; i++) {
+            for (let j = 0; j < board[i].length; j++) {
+                if (board[i][j] === null) {
+                    board[i][j] = opponent
+                    if (checkWinner(board, player) === 'lose') {
+                        console.log(`Player ${player} aimPreventLose at`, i,j)
+                        board[i][j] = null
+                        return [i,j]
+                    }
+                    board[i][j] = null
+                }
+            }
+        }
+    }
+
+    const minMax = (board, isMaximizing, player) => {
+        console.log(board, isMaximizing, player)
+        const score = {
+            win: 1,
+            lose: -1,
+            draw: 0
+        }
+        isMaximizing === true 
+            ? isMaximizing = false
+            : isMaximizing = true
+        let moveScore
+        let bestScore
+        let bestMove = {}
+        // break condition, return score min or max depends on the turn decided by isMaximizing
+        if (checkWinner(board, player)) {
+            console.log('checkwiner true', board, player, checkWinner(board, player))
+            bestScore = score[checkWinner(board,player)]
+            return {bestScore, bestMove}
+        }
+        console.log('no winner')
+        return {bestScore, bestMove}
+        // if (isMaximizing === true) {
+        //     bestScore = -Infinity
+        //     // iterate the board to make move on available move
+        //     // score each move
+        //     // keep the highest score
+        //     for (let i = 0; i < board.length; i++) {
+        //         for(let j = 0; j < board[i].length; j++) {
+        //             if (board[i][j] === null) {
+        //                 board[i][j] = player
+        //                 moveScore = score[minMax(board, isMaximizing, player).bestScore]
+        //                 if (moveScore > bestScore) {
+        //                     bestScore = moveScore
+        //                     bestMove = {i,j}
+        //                 }
+        //                 board[i][j] = null
+        //             }
+        //         }
+        //     }
+        //     return {bestScore, bestMove}
+        // } else {
+        //     bestScore = Infinity
+        //     // iterate the board to make move on available move
+        //     // score each move
+        //     // keep the lowest score
+        //     for (let i = 0; i < board.length; i++) {
+        //         for(let j = 0; j < board[i].length; j++) {
+        //             if (board[i][j] === null) {
+        //                 board[i][j] = player
+        //                 moveScore = score[minMax(board, isMaximizing, player).bestScore]
+        //                 if (moveScore < bestScore) {
+        //                     bestScore = moveScore
+        //                     bestMove = {i,j}
+        //                 }
+        //                 board[i][j] = null
+        //             }
+        //         }
+        //     }
+        //     return {bestScore, bestMove}
+        // }
+    }
+
+    const _impossible = (board, turn) => {
+        return _hard(board, player)
+    }
+
     const checkWinner = (board, player) =>{
         const opponent = player === 'X'
             ? 'O'
@@ -214,7 +293,6 @@ const gameBoard = (()=> {
     let _turnCount = 0
     let _currentPlayer = _players[_turnCount]
     let _blurToggle = false
-    let _cellClickToggle = false
 
     // cache DOM
     const _boardContainer = document.querySelector('.tictactoe-container')
@@ -267,34 +345,38 @@ const gameBoard = (()=> {
         const turn = currentPlayer()
         switch (true){
             case turn === 'X' && playerX.brain() === 'human':
-                cellClickToggle()
+                _enableClick()
                 break
             case turn === 'O' && playerO.brain() === 'human':
-                cellClickToggle()
+                _enableClick()
                 break
             case turn === 'X' && playerX.brain() !== 'human':
-                ai.nextMove([_board, playerX.brain(), _currentPlayer])
+                setTimeout(()=>{
+                    registeringPlayerMove(ai.nextMove([_board, playerX.brain(), _currentPlayer]))
+                },1000)
                 break
             case turn === 'O' && playerO.brain() !== 'human':
-                ai.nextMove([_board, playerO.brain(), _currentPlayer])
+                setTimeout(()=>{
+                    registeringPlayerMove(ai.nextMove([_board, playerO.brain(), _currentPlayer]))
+                },1000)
             break
         }
     }
-    
-    const cellClickToggle = () => {
-        if (_cellClickToggle === false) {
-            _cellClickToggle = true
-            _boardContainer.addEventListener('pointerdown', _clickHandler)
-        } else {
-            _cellClickToggle = false
-            _boardContainer.removeEventListener('pointerdown', _clickHandler)
-        }
+
+    const _disableClick = () => {
+        _boardContainer.removeEventListener('pointerdown', _clickHandler)
+    }
+
+    const _enableClick = () => {
+        _boardContainer.addEventListener('pointerdown', _clickHandler)
     }
     
     const registeringPlayerMove = (arg) => {
+        if (_turnCount === null) return 
         const [row, col] = arg
         if (_board[row][col] !== null) return _playerTurn()
         const turn = _players[(_turnCount)%2]
+        console.log(`Registering player ${turn} moves at ${arg}`)
         _board[row][col] = turn
         setTurnCount(_turnCount + 1)
         _render()
@@ -319,18 +401,19 @@ const gameBoard = (()=> {
                     
     
     const _reset =()=> {
-        _board = [
-            [null,null,null],
-            [null,null,null],
-            [null,null,null]
-        ]
-        _turnCount = 0
+        setTurnCount(null)
         blurToggle()
+        _disableClick()
         setTimeout(()=>{
-            _render()
+            setBoard([
+                [null,null,null],
+                [null,null,null],
+                [null,null,null]
+            ])
+            setTurnCount(0)
             _playerTurn()
             blurToggle()
-        },3000)
+        },2000)
     }
 
     const _render = () => {
@@ -363,12 +446,11 @@ const gameBoard = (()=> {
     } 
     
     const resumeGame = () => {
-        cellClickToggle()
-        _playerTurn()
+        _reset()
     }
 
     const _clickHandler = (e) => {
-        cellClickToggle()
+        _disableClick()
         const [row, col] = [e.target.dataset.row, e.target.dataset.col]
         registeringPlayerMove([row, col])
     }
