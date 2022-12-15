@@ -349,13 +349,12 @@ const gameBoard = (()=> {
     const setCellAngle = (arg) => {
         _cellsAngle = arg
         r.style.setProperty('--cells-rotate', `${arg}deg`);
-        _render()
         return _cellsAngle
     }
 
 
     const _playerTurn = () => {
-        setCellAngle((playerO.score() - playerX.score())*2)
+        setCellAngle(((_cellsAngle+1)*(playerO.score()-playerX.score()))%360)
         const turn = currentPlayer()
         switch (true){
             case turn === 'X' && playerX.brain() === 'human':
