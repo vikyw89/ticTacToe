@@ -4,18 +4,45 @@ Live Preview : https://vikyw89.github.io/ticTacToe/
 
 Made by Viky for The Odin Project 2022
 
-changelog:
+<h2>
+  changelog:
+</h2>
 
-20221215
-fixed bugs of error when there are multiple fast clicks
-prevent highlights of text and element on the game
-fixed bugs when changing mode
-reworked the AI priorities
-These AI will analyze 1 step based on different strategy combination
-easy => random moves
-normal => aim for winning ?? easyAI
-hard = > aim for winning ?? prevent enemy from winning ?? easyAI
+<h3>
+  20221215
+</h3>
+<ol>
+  <li>
+    fixed bugs when there are multiple fast clicks
+  </li>
+  <li>
+    prevent highlights of text and element on the game
+  </li>
+  <li>
+    fixed bugs when changing mode
+  </li>
+  <li>
+    reworked the AI priorities
+  </li>
+  <li>
+    These AI will analyze 1 step based on different strategy combination
+  </li>
+    <ul>
+      <li>
+        easy => random moves
+      </li>
+      <li>
+        normal => aim for winning ?? easyAI
+      </li>
+      <li>
+        hard = > aim for winning ?? prevent enemy from winning ?? easyAI
+      </li>
+    </ul>  
+</ol>
 
+<h3>
+  Design Brief
+</h3>
 <ol>
   <li>Set up your project with HTML, CSS and Javascript files and get the Git repo all set up.</li>
   <li>You’re going to store the gameboard as an array inside of a Gameboard object, so start there!  Your players are also going to be stored in objects… and you’re probably going to want an object to control the flow of the game itself.
