@@ -72,8 +72,8 @@ const ai = (() => {
             case brain === 'hard':
                 _selectedMoves = _hard(board, currentPlayer)
                 break
-            case brain === 'impossible':
-                _selectedMoves = _impossible(board, currentPlayer)
+            case brain === 'god':
+                _selectedMoves = _god(board, currentPlayer)
                 break
         }
         return [_selectedMoves[0], _selectedMoves[1]]
@@ -191,7 +191,7 @@ const ai = (() => {
         // }
     }
 
-    const _impossible = (board, turn) => {
+    const _god = (board, player) => {
         return _hard(board, player)
     }
 
