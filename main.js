@@ -289,6 +289,8 @@ const view = (() => {
                     item.classList.add('font-effect-fire')
                 } else if (item.textContent === 'O') {
                     item.classList.add('font-effect-neon')
+                } else {
+                    item.classList.value = 'cell'
                 }
                 return board
             })
@@ -351,51 +353,78 @@ const view = (() => {
 
 
 const displayController = (() => {
-
     // cache DOM
     const board = document.querySelector('.tictactoe-container')
+    const playerXSetting = document.querySelector('#player-x-setting')
+    const playerOSetting = document.querySelector('#player-o-setting')
 
     const renderBoard = (arg) => {
         view.boardCells(arg)
     }
 
-    const resetGame = (arg) => {
-
+    const resetGame = () => {
+        gameBoard.resetBoard()
+        view.boardCells(gameBoard.board())
+        view.blur()
+        setTimeout(()=> {
+            view.notification(' ')
+            view.blur()
+        },2000)
     }
 
     const playerXSettingHandler = () => {
         playerX.brain(view.playerOBrain())
-        gameBoard.resetBoard()
-        view.blur()
-        view.notification('restarting the game')
-        setTimeout(()=> {
-            view.notification('')
-            view.blur()
-        },2000)
+        resetGame()
     }
 
     const playerOSettingHandler = () => {
         playerO.brain(view.playerOBrain())
-        gameBoard.resetBoard()
-        view.blur()
-        view.notification('restarting the game')
-        setTimeout(()=> {
-            view.notification('')
-            view.blur()
-        },2000)
+        resetGame()
     }
 
     const registerPlayerMove = (arg) => {
+        disableClick()
         // checking move, if board is not null, return
         if (gameBoard.board()[arg[0]][arg[1]] !== null) return playerTurn()
         
+        // placing move on the board
         const player = gameBoard.players()[gameBoard.turnCount()%2]
         gameBoard.turnCount(gameBoard.turnCount() + 1)
         gameBoard.board()[arg[0]][arg[1]] = player
         view.boardCells(gameBoard.board())
 
+        // find winner
+        const winner  = gameBoard.winner(gameBoard.board())
+        console.log('winner',winner)
+        switch (true) {
+            case winner === 'X':
+                playerX.score(playerX.score()+1)
+                view.notification(`${player} WON THE GAME !`)
+                break
+            case winner === 'O':
+                playerO.score(playerO.score()+1)
+                view.notification(`${player} WON THE GAME !`)
+                break
+            case winner === 'draw':
+                view.notification('DRAW !')
+                break
+            default:
+                // return if no winner is found
+                playerTurn()
+                return
+        }
+        // what to do after a winner is found
+        resetGame()
     }
 
+    const disableClick = () => {
+        board.removeEventListener('pointerdown', playerClickHandler)
+    }
+
+    const enableClick = () => {
+        board.addEventListener('pointerdown', playerClickHandler)
+    }
+    
     const playerClickHandler = (e) => {
         registerPlayerMove([e.target.dataset.row, e.target.dataset.col])
     }
@@ -406,20 +435,20 @@ const displayController = (() => {
         switch (true) {
             case player === 'X':
                 playerX.brain() === 'human'
-                    ? board.addEventListener('pointerdown', playerClickHandler)
+                    ? enableClick()
                     : null
                 break
             case player === 'O':
                 playerO.brain() === 'human'
-                    ? board.addEventListener('pointerdown', playerClickHandler)
+                    ? enableClick()
                     : null
                 break
         }
     }
 
     // bind events setting
-    document.querySelector('#player-x-setting').addEventListener('change', playerXSettingHandler)
-    document.querySelector('#player-o-setting').addEventListener('change', playerOSettingHandler)
+    playerXSetting.addEventListener('change', playerXSettingHandler)
+    playerOSetting.addEventListener('change', playerOSettingHandler)
 
     // bind events board
     
