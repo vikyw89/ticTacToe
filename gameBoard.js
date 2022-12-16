@@ -552,3 +552,5 @@ const settings = (() => {
     return {
     }
 })()
+
+export * from 'gameBoard.js'

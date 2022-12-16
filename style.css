@@ -116,7 +116,7 @@ footer {
     justify-content: center;
     font-size: 4rem;
     transition:2s;
-    color: var(--darkreader-neutral-background);
+    color: var(--darkreader-neutral-text);
     rotate: var(--cells-rotate)
 }
 
