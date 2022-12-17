@@ -87,17 +87,17 @@ const gameBoard = (()=> {
 
         // check winner
         for (let player of players) {
-            const rowWinner = (tally.match(new RegExp(`"${player}","${player}","${player}"`,'g'))??[]).length >= 1
+            const rowWinner = (tally.match(new RegExp(String.raw`"${player}","${player}","${player}"`,'g'))??[]).length >= 1
             if (rowWinner) return player
-            const firstColWinner = (tally.match(new RegExp(`[[]"${player}"`,'g'))??[]).length === 3
+            const firstColWinner = (tally.match(new RegExp(String.raw`\["${player}"`,'g'))??[]).length === 3
             if (firstColWinner) return player
-            const secondColWinner = (tally.match(new RegExp(`,"${player}",`,'g'))??[]).length === 3
+            const secondColWinner = (tally.match(new RegExp(String.raw`,"${player}",`,'g'))??[]).length === 3
             if (secondColWinner) return player
-            const lastColWinner = (tally.match(new RegExp(`"${player}"\]`,'g'))??[]).length === 3
+            const lastColWinner = (tally.match(new RegExp(String.raw`"${player}"\]`,'g'))??[]).length === 3
             if (lastColWinner) return player
-            const topLeftBotRight = (tally.match(new RegExp(`[[]{2}"${player}",.+\],[[].+,"${player}",.+\],[[].+,"${player}"\]{2}`,'g'))??[]).length === 1
+            const topLeftBotRight = (tally.match(new RegExp(String.raw`\[{2}"${player}",.+\],\[.+,"${player}",.+\],\[.+,"${player}"\]{2}`,'g'))??[]).length === 1
             if (topLeftBotRight) return player
-            const botLeftTopRight = (tally.match(new RegExp(`[[]{2}.+,"${player}"\],[[].+,"${player}",.+\],[[]"${player}".+\]{2}`,'g'))??[]).length === 1
+            const botLeftTopRight = (tally.match(new RegExp(String.raw`\[{2}.+,"${player}"\],\[.+,"${player}",.+\],\["${player}".+\]{2}`,'g'))??[]).length === 1
             if (botLeftTopRight) return player
         }
 
@@ -143,10 +143,6 @@ const ai = (()=> {
         return aimWin(board,player) ?? aimPreventLose(board, player) ?? easy(board)
     }
 
-    const god = (board, player) => {
-        return hard(board, player)
-    }
-
     const aimWin = (board, player) => {
         for (let i = 0; i < board.length ; i++) {
             for (let j = 0; j < board[i].length; j++) {
@@ -182,68 +178,103 @@ const ai = (()=> {
         }
     }
 
-    //     const minMax = (board, isMaximizing, player) => {
-    //     console.log(board, isMaximizing, player)
-    //     const score = {
-    //         win: 1,
-    //         lose: -1,
-    //         draw: 0
-    //     }
-    //     isMaximizing === true 
-    //         ? isMaximizing = false
-    //         : isMaximizing = true
-    //     let moveScore
-    //     let bestScore
-    //     let bestMove = {}
-    //     // break condition, return score min or max depends on the turn decided by isMaximizing
-    //     if (checkWinner(board, player)) {
-    //         console.log('checkwiner true', board, player, checkWinner(board, player))
-    //         bestScore = score[checkWinner(board,player)]
-    //         return {bestScore, bestMove}
-    //     }
-    //     console.log('no winner')
-    //     return {bestScore, bestMove}
-    //     // if (isMaximizing === true) {
-    //     //     bestScore = -Infinity
-    //     //     // iterate the board to make move on available move
-    //     //     // score each move
-    //     //     // keep the highest score
-    //     //     for (let i = 0; i < board.length; i++) {
-    //     //         for(let j = 0; j < board[i].length; j++) {
-    //     //             if (board[i][j] === null) {
-    //     //                 board[i][j] = player
-    //     //                 moveScore = score[minMax(board, isMaximizing, player).bestScore]
-    //     //                 if (moveScore > bestScore) {
-    //     //                     bestScore = moveScore
-    //     //                     bestMove = {i,j}
-    //     //                 }
-    //     //                 board[i][j] = null
-    //     //             }
-    //     //         }
-    //     //     }
-    //     //     return {bestScore, bestMove}
-    //     // } else {
-    //     //     bestScore = Infinity
-    //     //     // iterate the board to make move on available move
-    //     //     // score each move
-    //     //     // keep the lowest score
-    //     //     for (let i = 0; i < board.length; i++) {
-    //     //         for(let j = 0; j < board[i].length; j++) {
-    //     //             if (board[i][j] === null) {
-    //     //                 board[i][j] = player
-    //     //                 moveScore = score[minMax(board, isMaximizing, player).bestScore]
-    //     //                 if (moveScore < bestScore) {
-    //     //                     bestScore = moveScore
-    //     //                     bestMove = {i,j}
-    //     //                 }
-    //     //                 board[i][j] = null
-    //     //             }
-    //     //         }
-    //     //     }
-    //     //     return {bestScore, bestMove}
-    //     // }
-    // }
+    const god = (board, player) => {
+        // let moves = []
+        // let bestScore = -Infinity
+        // for (let i = 0; i < board.length; i++){
+        //     for (let j = 0; j < board[i].length; j++) {
+        //         if (board[i][j] === null) {
+        //             board[i][j] = player
+        //             let score = minimax(board, 10, false)
+        //             board[i][j] = null
+        //             if (bestScore < score) {
+        //                 bestScore = score
+        //                 moves = [i,j]
+        //             }
+        //         }
+        //     }
+        // }
+        // return moves
+        return minimax(board, 10, 'min')
+    }
 
+    function minimax(board, depth, player) {
+        // Base case: check if the game is over or if we have reached the maximum depth
+        if (gameBoard.winner(board) != undefined || depth == 0) {
+            // Return the score for the current 
+            const score = {
+                'X': 1,
+                'O': -1,
+                'draw': 0,
+            }
+            return score[gameBoard.winner(board)];
+        }
+    
+        // Initialize the best move and score for the current player
+        let bestRow, bestCol;
+        let bestScore;
+        if (player == "max") {
+            // Initialize the best score to a low value
+            bestScore = -Infinity;
+        
+            // Iterate through all the available moves
+            for (let row = 0; row < board.length; row++) {
+                for (let col = 0; col < board[0].length; col++) {
+                // Check if the cell is empty
+                if (board[row][col] == null) {
+                    // Make the move
+                    board[row][col] = player;
+        
+                    // Recursively call minimax with the other player
+                    let score = minimax(board, depth - 1, "min");
+        
+                    // Undo the move
+                    board[row][col] = null;
+        
+                    // Update the best score and move if necessary
+                    if (score > bestScore) {
+                    bestScore = score;
+                    bestRow = row;
+                    bestCol = col;
+                    }
+                }
+            }
+        }
+        } else {
+        // Initialize the best score to a high value
+        bestScore = Infinity;
+    
+        // Iterate through all the available moves
+        for (let row = 0; row < board.length; row++) {
+            for (let col = 0; col < board[0].length; col++) {
+            // Check if the cell is empty
+            if (board[row][col] == null) {
+                // Make the move
+                board[row][col] = player;
+    
+                // Recursively call minimax with the other player
+                let score = minimax(board, depth - 1, "max");
+    
+                // Undo the move
+                board[row][col] = null;
+    
+                // Update the best score and move if necessary
+                if (score < bestScore) {
+                bestScore = score;
+                bestRow = row;
+                bestCol = col;
+                }
+            }
+            }
+        }
+        }
+    
+        // Return the best move
+        return [bestRow, bestCol];
+    }
+      
+  
+  
     return {
         availableMoves,
         easy,
@@ -376,7 +407,7 @@ const state = (() => {
 
     const setNotification = (arg) => {
         _notification.textContent = arg
-        return arg
+        return _notification.textContent
     }
 
     const resetBoard = () => {
@@ -392,19 +423,6 @@ const state = (() => {
     const winner = () => {
         return gameBoard.winner(gameBoard.board())
     }
-
-    // bind events
-    _playerXBrain.addEventListener('change', ()=>{
-        setPlayerXBrain(_playerXBrain.value)
-        resetBoard()
-        setNotification()
-    })
-    
-    _playerOBrain.addEventListener('change', ()=>{
-        setPlayerOBrain(_playerOBrain.value)
-        resetBoard()
-        setNotification()
-    })
 
     const enableClick = (fn) => {
         _board.addEventListener('pointerdown', fn)
@@ -422,6 +440,15 @@ const state = (() => {
         gameBoard.setTurnCount(arg)
         return gameBoard.turnCount()
     }
+
+    // bind events
+    _playerXBrain.addEventListener('change', ()=>{
+        setPlayerXBrain(_playerXBrain.value)
+    })
+    
+    _playerOBrain.addEventListener('change', ()=>{
+        setPlayerOBrain(_playerOBrain.value)
+    })
 
     // init
 
@@ -454,12 +481,16 @@ const state = (() => {
 })()
 
 const displayController = (() => {
+    // cache DOM
+    const _playerXBrain = document.querySelector('#player-x-setting')
+    const _playerOBrain = document.querySelector('#player-o-setting')
+
     const resetGame = () => {
-        state.setTurnCount()
+        state.setTurnCount('reset')
         state.blurToggle()
         setTimeout(()=> {
             state.resetBoard()
-            state.notification()
+            state.setNotification()
             state.blurToggle()
             nextTurn()
         },2000)
@@ -467,15 +498,16 @@ const displayController = (() => {
 
     const playerClickHandler = (e) => {
         registerPlayerMove([e.target.dataset.row, e.target.dataset.col])
+        state.disableClick()
     }
 
     const registerPlayerMove = (arg) => {
         const player = state.player()
         // catching AI delayed move when settings changed
-        if (state.turnCount() === null) return
+        if (state.turnCount() === 'reset') return
         
         // checking move, if board is not null, return
-        if (state.board()[arg[0]][arg[1]] !== null) return playerTurn()
+        if (state.board()[arg[0]][arg[1]] !== null) return nextTurn()
 
         // placing move on the board
         state.setTurnCount(state.turnCount() + 1)
@@ -535,7 +567,7 @@ const displayController = (() => {
         switch (true) {
             case player === 'X':
                 // rotate cells
-                state.setCellsAngle((state.cellsAngle() - +state.playerXScore())%360)
+                state.setCellsAngle((state.cellsAngle() - +state.playerXScore()%10)%360)
                 switch (true) {
                     case state.playerXBrain() === 'human':
                         nextHumanMove()
@@ -547,7 +579,7 @@ const displayController = (() => {
                 break
             case player === 'O':
                 // rotate cells
-                state.setCellsAngle((state.cellsAngle() + state.playerOScore())%360)
+                state.setCellsAngle((state.cellsAngle() + state.playerOScore()%10)%360)
                 switch (true) {
                     case state.playerOBrain() === 'human':
                         nextHumanMove()
@@ -561,9 +593,15 @@ const displayController = (() => {
     }
 
     // bind events
-    
+    _playerOBrain.addEventListener('change', ()=>{
+        resetGame()
+    })
+    _playerXBrain.addEventListener('change', ()=>{
+        resetGame()
+    })
+
     // init
-    state.setPlayerOBrain('hard')
+    state.setPlayerOBrain('human')
     state.setPlayerXBrain('hard')
     nextTurn()
 })()
