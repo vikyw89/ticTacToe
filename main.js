@@ -3,22 +3,30 @@ const player = (arg) => {
     let _score = 0    
     let _brain = 'human'
 
-    const score = (arg) => {
-        return arg
-            ? _score = arg
-            : _score
+    const score = () => {
+        return +_score
     }
 
-    const brain = (arg) => {
-        return arg
-            ? _brain = arg
-            : _brain
+    const setScore = (arg) => {
+        _score = arg
+        return +_score
+    }
+
+    const brain = () => {
+        return _brain
+    }
+
+    const setBrain = (arg) => {
+        _brain = arg
+        return _brain
     }
 
     // export
     return {
         score,
+        setScore,
         brain,
+        setBrain
     }
 }
 
@@ -30,25 +38,45 @@ const gameBoard = (()=> {
         [null, null, null]
     ]
     let _turnCount = 0
-    
-    const players = (arg) => {
-        return arg
-            ? _players = arg
-            : _players
+
+    const player = ()=> {
+        return _players[_turnCount % _players.length]
     }
 
-    const board = (arg) => {
+    const players = () => {
+        return _players
+    }
+
+    const setPlayers = (arg) => {
+        _players = arg
         return arg
-            ? _board = arg
-            : _board
+    }
+
+    const board = () => {
+        return _board
+    }
+
+    const setBoard = (arg) => {
+        _board = arg
+        return arg
     }
 
     const turnCount = () => {
         return _turnCount
     }
+
     const setTurnCount = (arg) => {
         _turnCount = arg
-        return arg
+        return _turnCount
+    }
+
+    const resetBoard = () => {
+        _board = [
+            [null, null, null],
+            [null, null, null],
+            [null, null, null]
+        ]
+        _turnCount = 0
     }
 
     const winner = (board) => {
@@ -78,18 +106,12 @@ const gameBoard = (()=> {
         if (draw) return `draw`
     }
 
-    const resetBoard = () => {
-        _board = [
-            [null, null, null],
-            [null, null, null],
-            [null, null, null]
-        ]
-        _turnCount = 0
-    }
-
     return {
+        player,
         players,
+        setPlayers,
         board,
+        setBoard,
         turnCount,
         setTurnCount,
         winner,
@@ -253,226 +275,295 @@ const database = (() => {
     }
 })()
 
-const view = (() => {
-    const boardCells = (arg) => {
-        return arg
-            ? [...document.querySelectorAll('.cell')].map((item, index)=> {
-                const board = [...arg].reduce((result, value)=>{
-                    result = result.concat(value)
-                    return result
-                })
-                item.textContent = board[index]
-                if (item.textContent === 'X') {
-                    item.classList.add('font-effect-fire')
-                } else if (item.textContent === 'O') {
-                    item.classList.add('font-effect-neon')
-                } else {
-                    item.classList.value = 'cell'
-                }
-                return board
+// init objects
+const playerX = player('X')
+const playerO = player('O')
+
+const state = (() => {
+    // cache DOM
+    const _playerXScore = document.querySelector('.player-x-score')
+    const _playerOScore = document.querySelector('.player-o-score')
+    const _playerXBrain = document.querySelector('#player-x-setting')
+    const _playerOBrain = document.querySelector('#player-o-setting')
+    const _board = document.querySelector('.tictactoe-container')
+    const _cells = document.querySelectorAll('.cell')
+    const _notification = document.querySelector('.announcement')
+    const _root = document.querySelector(':root')
+
+    // methods
+    const playerXScore = () => {
+        return playerX.score()
+    }
+
+    const setPlayerXScore = (arg) => {
+        playerX.setScore(arg)
+        _playerXScore.textContent = arg
+        return playerX.score()
+    }
+
+    const playerOScore = () => {
+        return playerO.score()
+    }
+
+    const setPlayerOScore = (arg) => {
+        playerO.setScore(arg)
+        _playerOScore.textContent = arg
+        return playerO.score()
+    }
+
+    const playerXBrain = () => {
+        return playerX.brain()
+    }
+
+    const setPlayerXBrain = (arg) => {
+        playerX.setBrain(arg)
+        _playerXBrain.value = arg
+        return playerX.brain()
+    }
+
+    const playerOBrain = () => {
+        return playerO.brain()
+    }
+
+    const setPlayerOBrain = (arg) => {
+        playerO.setBrain(arg)
+        _playerOBrain.value = arg
+        return playerO.brain()
+    }
+
+    const board = () => {
+        return gameBoard.board()
+    }
+
+    const setBoard = (arg) => {
+        gameBoard.setBoard(arg)
+        const temp = [..._cells].map((item, index)=> {
+            const board = [...arg].reduce((result, value)=>{
+                result = result.concat(value)
+                return result
             })
-            : [...document.querySelectorAll('.cell')].map(item=> item.textContent)
+            item.textContent = board[index]
+            if (item.textContent === 'X') {
+                item.classList.add('font-effect-fire')
+            } else if (item.textContent === 'O') {
+                item.classList.add('font-effect-neon')
+            } else {
+                item.classList.value = 'cell'
+            }
+            return board
+        })
+        return gameBoard.board()
     }
 
-    const playerXScore = (arg) => {
+    const blurToggle = () => {
+        _board.classList.value.match('blur')
+            ? _board.classList.remove('blur')
+            : _board.classList.add('blur')
+    }
+
+    const cellsAngle = () => {
+        return +_root.style.getPropertyValue('--cells-rotate').replace('deg','')
+    }
+
+    const setCellsAngle = (arg) => {
+        _root.style.setProperty('--cells-rotate', `${arg}deg`)
         return arg
-            ? document.querySelector('.player-x-score').textContent = arg
-            : document.querySelector('.player-x-score').textContent
     }
 
-    const playerOScore = (arg) => {
+    const notification = () => {
+        return _notification.textContent
+    }
+
+    const setNotification = (arg) => {
+        _notification.textContent = arg
         return arg
-            ? document.querySelector('.player-o-score').textContent = arg
-            : document.querySelector('.player-o-score').textContent
     }
 
-    const playerOBrain = (arg) => {
-        return arg
-            ? document.querySelector('#player-o-setting').value = arg
-            : document.querySelector('#player-o-setting').value
+    const resetBoard = () => {
+        gameBoard.resetBoard()
+        setBoard(board())
+        return
     }
 
-    const playerXBrain = (arg) => {
-        return arg
-            ? document.querySelector('#player-x-setting').value = arg
-            : document.querySelector('#player-x-setting').value
+    const player = () => {
+        return gameBoard.player()
     }
 
-    const blur = () => {
-        document.querySelector('.tictactoe-container').classList.value.match('blur')
-            ? document.querySelector('.tictactoe-container').classList.remove('blur')
-            : document.querySelector('.tictactoe-container').classList.add('blur')
+    const winner = () => {
+        return gameBoard.winner(gameBoard.board())
     }
 
-    const cellsAngle = (arg) => {
-        return arg
-            ? document.querySelector(':root').style.setProperty('--cells-rotate', `${arg}deg`)
-            : +document.querySelector(':root').style.getPropertyValue('--cells-rotate').replace('deg','')
+    // bind events
+    _playerXBrain.addEventListener('change', ()=>{
+        setPlayerXBrain(_playerXBrain.value)
+        resetBoard()
+        setNotification()
+    })
+    
+    _playerOBrain.addEventListener('change', ()=>{
+        setPlayerOBrain(_playerOBrain.value)
+        resetBoard()
+        setNotification()
+    })
+
+    const enableClick = (fn) => {
+        _board.addEventListener('pointerdown', fn)
     }
 
-    const notification = (arg) => {
-        return arg
-            ? document.querySelector('.announcement').textContent = arg
-            : document.querySelector('.announcement').textContent
-        
+    const disableClick = (fn) => {
+        _board.removeEventListener('pointerdown', fn)
     }
+
+    const turnCount = () => {
+        return gameBoard.turnCount()
+    }
+
+    const setTurnCount = (arg) => {
+        gameBoard.setTurnCount(arg)
+        return gameBoard.turnCount()
+    }
+
+    // init
+
     return {
-        boardCells,
         playerXScore,
+        setPlayerXScore,
         playerOScore,
-        playerOBrain,
+        setPlayerOScore,
+        playerOScore,
+        setPlayerOScore,
         playerXBrain,
-        blur,
+        setPlayerXBrain,
+        playerOBrain,
+        setPlayerOBrain,
+        board,
+        setBoard,
+        blurToggle,
         cellsAngle,
-        notification
+        setCellsAngle,
+        notification,
+        setNotification,
+        resetBoard,
+        player,
+        winner,
+        enableClick,
+        disableClick,
+        turnCount,
+        setTurnCount,
     }
 })()
 
-
 const displayController = (() => {
-    // cache DOM
-    const board = document.querySelector('.tictactoe-container')
-    const playerXSetting = document.querySelector('#player-x-setting')
-    const playerOSetting = document.querySelector('#player-o-setting')
-
-    const renderBoard = (arg) => {
-        view.boardCells(arg)
-    }
-
     const resetGame = () => {
-        gameBoard.setTurnCount('reset')
-        view.blur()
+        state.setTurnCount()
+        state.blurToggle()
         setTimeout(()=> {
-            gameBoard.resetBoard()
-            view.boardCells(gameBoard.board())
-            view.notification(' ')
-            view.blur()
-            playerTurn()
+            state.resetBoard()
+            state.notification()
+            state.blurToggle()
+            nextTurn()
         },2000)
     }
-    
-    const playerXSettingHandler = () => {
-        playerX.brain(view.playerXBrain())
-        resetGame()
-    }
-    
-    const playerOSettingHandler = () => {
-        playerO.brain(view.playerOBrain())
-        resetGame()
-    }
-    const disableClick = () => {
-        board.removeEventListener('pointerdown', playerClickHandler)
-    }
 
-    const enableClick = () => {
-        board.addEventListener('pointerdown', playerClickHandler)
+    const playerClickHandler = (e) => {
+        registerPlayerMove([e.target.dataset.row, e.target.dataset.col])
     }
 
     const registerPlayerMove = (arg) => {
-        disableClick()
-        if (gameBoard.turnCount() === 'reset') return 
+        const player = state.player()
+        // catching AI delayed move when settings changed
+        if (state.turnCount() === null) return
+        
         // checking move, if board is not null, return
-        if (gameBoard.board()[arg[0]][arg[1]] !== null) return playerTurn()
+        if (state.board()[arg[0]][arg[1]] !== null) return playerTurn()
 
         // placing move on the board
-        const player = gameBoard.players()[gameBoard.turnCount()%2]
-        gameBoard.setTurnCount(gameBoard.turnCount() + 1)
-        gameBoard.board()[arg[0]][arg[1]] = player
-        view.boardCells(gameBoard.board())
-
+        state.setTurnCount(state.turnCount() + 1)
+        state.board()[arg[0]][arg[1]] = player
+        state.setBoard(state.board())
+        
         // find winner
-        const winner  = gameBoard.winner(gameBoard.board())
         switch (true) {
-            case winner === 'X':
-                view.playerXScore(playerX.score(playerX.score()+1))
-                view.notification(`${player} WON THE GAME !`)
+            case state.winner() === 'X':
+                state.setPlayerXScore(state.playerXScore() + 1)
+                state.setNotification(`${player} WON THE GAME !`)
                 break
-            case winner === 'O':
-                view.playerOScore(playerO.score(playerO.score()+1))
-                view.notification(`${player} WON THE GAME !`)
+            case state.winner() === 'O':
+                state.setPlayerOScore(state.playerOScore() + 1)
+                state.setNotification(`${player} WON THE GAME !`)
                 break
-            case winner === 'draw':
-                view.notification('DRAW !')
+            case state.winner() === 'draw':
+                state.setNotification('DRAW !')
                 break
             default:
                 // return if no winner is found
-                playerTurn()
+                nextTurn()
                 return
         }
         // what to do after a winner is found
         resetGame()
     }
-    
-    const playerClickHandler = (e) => {
-        registerPlayerMove([e.target.dataset.row, e.target.dataset.col])
-    }
-
 
     const nextAIMove = (player, brain) => {
         setTimeout(()=>{
             switch (true) {
                 case brain === 'easy':
-                    registerPlayerMove(ai.easy(gameBoard.board(), player))
+                    registerPlayerMove(ai.easy(state.board(), player))
                     break
                 case brain === 'normal':
-                    registerPlayerMove(ai.normal(gameBoard.board(), player))
+                    registerPlayerMove(ai.normal(state.board(), player))
                     break
                 case brain === 'hard':
-                    registerPlayerMove(ai.hard(gameBoard.board(), player))
+                    registerPlayerMove(ai.hard(state.board(), player))
                     break
                 case brain === 'god':
-                    registerPlayerMove(ai.god(gameBoard.board(), player))
+                    registerPlayerMove(ai.god(state.board(), player))
                     break
             }
         },1000)
     }
 
-    const playerTurn = () => {
-        const player = gameBoard.players()[gameBoard.turnCount()%2]
-        view.cellsAngle(view.cellsAngle() - playerX.score() + playerO.score())
+    const nextHumanMove = () => {
+        state.enableClick(playerClickHandler)
+        return
+    }
+
+    const nextTurn = () => {
+        const player = state.player()
+        
         // check brain, if it's human then allow for event listener for click
         switch (true) {
             case player === 'X':
+                // rotate cells
+                state.setCellsAngle((state.cellsAngle() - +state.playerXScore())%360)
                 switch (true) {
-                    case playerX.brain() === 'human':
-                        enableClick()
+                    case state.playerXBrain() === 'human':
+                        nextHumanMove()
                         break
                     default:
-                        nextAIMove(player, playerX.brain())
+                        nextAIMove(player, state.playerXBrain())
                         break
                 }
                 break
             case player === 'O':
+                // rotate cells
+                state.setCellsAngle((state.cellsAngle() + state.playerOScore())%360)
                 switch (true) {
-                    case playerO.brain() === 'human':
-                        console.log('human')
-                        enableClick()
+                    case state.playerOBrain() === 'human':
+                        nextHumanMove()
                         break
                     default:
-                        nextAIMove(player, playerO.brain())
+                        nextAIMove(player, state.playerOBrain())
                         break
                 }
                 break
         }
     }
 
-    // bind events setting
-    playerXSetting.addEventListener('change', playerXSettingHandler)
-    playerOSetting.addEventListener('change', playerOSettingHandler)
-
-    // bind events board
-    
-
     // bind events
-
+    
     // init
-    const playerX = player('X')
-    const playerO = player('O')
-    playerO.brain(view.playerOBrain('hard'))
-    playerX.brain(view.playerXBrain('human'))
-    playerTurn()
-
-    return{
-        renderBoard,
-    }
+    state.setPlayerOBrain('hard')
+    state.setPlayerXBrain('hard')
+    nextTurn()
 })()
