@@ -80,36 +80,34 @@ const gameBoard = (()=> {
     }
 
     const winner = (board) => {
-        // Input board and players
-        // Return winner name if there's any
-        let tally = JSON.stringify(board)
-        const players = ["X","O"]
-
-        // check winner
-        for (let player of players) {
-            const rowWinner = (tally.match(new RegExp(
-                String.raw`"${player}","${player}","${player}"`,'g'))??[]).length >= 1
-            if (rowWinner) return player
-            const firstColWinner = (tally.match(new RegExp(
-                String.raw`\["${player}"`,'g'))??[]).length === 3
-            if (firstColWinner) return player
-            const secondColWinner = (tally.match(new RegExp(
-                String.raw`,"${player}",`,'g'))??[]).length === 3
-            if (secondColWinner) return player
-            const lastColWinner = (tally.match(new RegExp(
-                String.raw`"${player}"\]`,'g'))??[]).length === 3
-            if (lastColWinner) return player
-            const topLeftBotRight = (tally.match(new RegExp(
-                String.raw`\[{2}"${player}",.+\],\[.+,"${player}",.+\],\[.+,"${player}"\]{2}`,'g'))??[]).length === 1
-            if (topLeftBotRight) return player
-            const botLeftTopRight = (tally.match(new RegExp(
-                String.raw`\[{2}.+,"${player}"\],\[.+,"${player}",.+\],\["${player}".+\]{2}`,'g'))??[]).length === 1
-            if (botLeftTopRight) return player
+        for (let i = 0; i < board.length; i++) {
+            switch (true) {
+                case board[i][0] && board[i][0] === board[i][1] && board[i][0] === board[i][2]:
+                    return board[i][0]
+                case board[0][i] && board[0][i] === board[1][i] && board[0][i] === board[2][i]:
+                    return board[0][i]
+            }
         }
 
+        // check diagonal
+        if (board[1][1]) {
+            switch (true) {
+                case board[1][1] === board[0][0] && board[1][1] === board[2][2]:
+                    return board[1][1]
+                case board[1][1] === board[2][0] && board[1][1] === board[0][2]:
+                    return board[1][1]
+            }
+        }
+        
         // check draw
-        const draw = (tally.match(new RegExp(`null`))??[]).length === 0
-        if (draw) return `draw`
+        for (let i = 0; i < board.length; i++) {
+            for (let j = 0; j <board.length; j++) {
+                if (!board[i][j]) {
+                    return
+                }
+            }
+        }
+        return 'draw'
     }
 
     return {
@@ -184,25 +182,81 @@ const ai = (()=> {
         }
     }
 
-    const god = (board, player) => {
-        // let moves = []
-        // let bestScore = -Infinity
-        // for (let i = 0; i < board.length; i++){
-        //     for (let j = 0; j < board[i].length; j++) {
-        //         if (board[i][j] === null) {
-        //             board[i][j] = player
-        //             let score = minimax(board, 10, false)
-        //             board[i][j] = null
-        //             if (bestScore < score) {
-        //                 bestScore = score
-        //                 moves = [i,j]
-        //             }
-        //         }
-        //     }
+    const minMax = (board, depth, max) => {
+        // let opponent
+        // if (player === 'X') {
+        //     opponent = 'O'
         // }
-        // return moves
-        return minimax(board, 10, 'min')
+
+        const scoreTranslate = {
+            X:1,
+            O:-1,
+            draw:0
+        }
+
+        let bestScore = scoreTranslate[gameBoard.winner(board)]
+
+        // break condition
+        if (gameBoard.winner(board) || depth === 0) {
+            return bestScore
+        }
+        
+        // toggle maiximizing to minimizing and vice versa
+        switch (true) {
+            case max:
+                bestScore = -Infinity
+                for (let i = 0; i < board.length; i++) {
+                    for (let j = 0; j < board[i].length; j++) {
+                        if (!board[i][j]) {
+                            board[i][j] = 'X'
+                            score = minMax(board, depth - 1, !max)
+                            board[i][j] = null
+                            if (bestScore < score) {
+                                bestScore = score
+                            }
+                        }
+                    }
+                }
+                return bestScore
+            case !max:
+                bestScore = Infinity
+                for (let i = 0; i < board.length; i++) {
+                    for (let j = 0; j < board[i].length; j++) {
+                        if (!board[i][j]) {
+                            board[i][j] = 'O'
+                            score = minMax(board, depth - 1, !max)
+                            board[i][j] = null
+                            if (bestScore > score) {
+                                bestScore = score
+                            }
+                        }
+                    }
+                }
+                return bestScore
+        }
     }
+
+    const god = (board, player) => {
+        // making moves on null space and score it using minmax
+        let bestMove = []
+        let bestScore = -Infinity
+        for (let i = 0; i < board.length; i++) {
+            for (let j = 0; j < board[i].length; j++) {
+                if (!board[i][j]) {
+                    board[i][j] = 'X'
+                    let score = minMax(board, 10, false)
+                    board[i][j] = null
+                    if (bestScore < score) {
+                        bestScore = score
+                        bestMove = [i,j]
+                    }
+                }
+            }
+        }
+        console.log(bestMove, bestScore)
+        return bestMove
+    }
+
 
     function minimax(board, depth, player) {
         // Base case: check if the game is over or if we have reached the maximum depth
