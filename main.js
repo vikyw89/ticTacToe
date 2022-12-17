@@ -87,17 +87,23 @@ const gameBoard = (()=> {
 
         // check winner
         for (let player of players) {
-            const rowWinner = (tally.match(new RegExp(String.raw`"${player}","${player}","${player}"`,'g'))??[]).length >= 1
+            const rowWinner = (tally.match(new RegExp(
+                String.raw`"${player}","${player}","${player}"`,'g'))??[]).length >= 1
             if (rowWinner) return player
-            const firstColWinner = (tally.match(new RegExp(String.raw`\["${player}"`,'g'))??[]).length === 3
+            const firstColWinner = (tally.match(new RegExp(
+                String.raw`\["${player}"`,'g'))??[]).length === 3
             if (firstColWinner) return player
-            const secondColWinner = (tally.match(new RegExp(String.raw`,"${player}",`,'g'))??[]).length === 3
+            const secondColWinner = (tally.match(new RegExp(
+                String.raw`,"${player}",`,'g'))??[]).length === 3
             if (secondColWinner) return player
-            const lastColWinner = (tally.match(new RegExp(String.raw`"${player}"\]`,'g'))??[]).length === 3
+            const lastColWinner = (tally.match(new RegExp(
+                String.raw`"${player}"\]`,'g'))??[]).length === 3
             if (lastColWinner) return player
-            const topLeftBotRight = (tally.match(new RegExp(String.raw`\[{2}"${player}",.+\],\[.+,"${player}",.+\],\[.+,"${player}"\]{2}`,'g'))??[]).length === 1
+            const topLeftBotRight = (tally.match(new RegExp(
+                String.raw`\[{2}"${player}",.+\],\[.+,"${player}",.+\],\[.+,"${player}"\]{2}`,'g'))??[]).length === 1
             if (topLeftBotRight) return player
-            const botLeftTopRight = (tally.match(new RegExp(String.raw`\[{2}.+,"${player}"\],\[.+,"${player}",.+\],\["${player}".+\]{2}`,'g'))??[]).length === 1
+            const botLeftTopRight = (tally.match(new RegExp(
+                String.raw`\[{2}.+,"${player}"\],\[.+,"${player}",.+\],\["${player}".+\]{2}`,'g'))??[]).length === 1
             if (botLeftTopRight) return player
         }
 
@@ -601,7 +607,7 @@ const displayController = (() => {
     })
 
     // init
-    state.setPlayerOBrain('human')
     state.setPlayerXBrain('hard')
+    state.setPlayerOBrain('hard')
     nextTurn()
 })()
