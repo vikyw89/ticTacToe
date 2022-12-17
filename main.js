@@ -182,15 +182,17 @@ const ai = (()=> {
         }
     }
 
-    const minMax = (board, depth, max) => {
-        // let opponent
-        // if (player === 'X') {
-        //     opponent = 'O'
-        // }
+    const minMax = (board, depth, player, max) => {
+        let opponent
+        if (player === 'X') {
+            opponent = 'O'
+        } else {
+            opponent = 'X'
+        }
 
         const scoreTranslate = {
-            X:1,
-            O:-1,
+            [player]:1,
+            [opponent]:-1,
             draw:0
         }
 
@@ -208,8 +210,8 @@ const ai = (()=> {
                 for (let i = 0; i < board.length; i++) {
                     for (let j = 0; j < board[i].length; j++) {
                         if (!board[i][j]) {
-                            board[i][j] = 'X'
-                            score = minMax(board, depth - 1, !max)
+                            board[i][j] = player
+                            score = minMax(board, depth - 1, player, !max)
                             board[i][j] = null
                             if (bestScore < score) {
                                 bestScore = score
@@ -223,8 +225,8 @@ const ai = (()=> {
                 for (let i = 0; i < board.length; i++) {
                     for (let j = 0; j < board[i].length; j++) {
                         if (!board[i][j]) {
-                            board[i][j] = 'O'
-                            score = minMax(board, depth - 1, !max)
+                            board[i][j] = opponent
+                            score = minMax(board, depth - 1, player, !max)
                             board[i][j] = null
                             if (bestScore > score) {
                                 bestScore = score
@@ -243,8 +245,8 @@ const ai = (()=> {
         for (let i = 0; i < board.length; i++) {
             for (let j = 0; j < board[i].length; j++) {
                 if (!board[i][j]) {
-                    board[i][j] = 'X'
-                    let score = minMax(board, 10, false)
+                    board[i][j] = player
+                    let score = minMax(board, 10, player, false)
                     board[i][j] = null
                     if (bestScore < score) {
                         bestScore = score
