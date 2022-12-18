@@ -238,7 +238,7 @@ const ai = (()=> {
         }
     }
 
-    const god = (board, player) => {
+    const minMaxAI = (board, player, depth) => {
         // making moves on null space and score it using minmax
         let bestMove = []
         let bestScore = -Infinity
@@ -246,7 +246,7 @@ const ai = (()=> {
             for (let j = 0; j < board[i].length; j++) {
                 if (!board[i][j]) {
                     board[i][j] = player
-                    let score = minMax(board, 10, player, false)
+                    let score = minMax(board, depth, player, false)
                     board[i][j] = null
                     if (bestScore < score) {
                         bestScore = score
@@ -265,9 +265,9 @@ const ai = (()=> {
         easy,
         normal,
         hard,
-        god,
         aimWin,
         aimPreventLose,
+        minMaxAI,
     }
 })()
 
@@ -526,16 +526,16 @@ const displayController = (() => {
         setTimeout(()=>{
             switch (true) {
                 case brain === 'easy':
-                    registerPlayerMove(ai.easy(state.board(), player))
+                    registerPlayerMove(ai.minMaxAI(state.board(), player, 1))
                     break
                 case brain === 'normal':
-                    registerPlayerMove(ai.normal(state.board(), player))
+                    registerPlayerMove(ai.minMaxAI(state.board(), player, 2))
                     break
                 case brain === 'hard':
-                    registerPlayerMove(ai.hard(state.board(), player))
+                    registerPlayerMove(ai.minMaxAI(state.board(), player, 3))
                     break
                 case brain === 'god':
-                    registerPlayerMove(ai.god(state.board(), player))
+                    registerPlayerMove(ai.minMaxAI(state.board(), player, Infinity))
                     break
             }
         },1000)
