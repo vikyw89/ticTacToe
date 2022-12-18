@@ -191,8 +191,8 @@ const ai = (()=> {
         }
 
         const scoreTranslate = {
-            [player]:1,
-            [opponent]:-1,
+            [player]:1 * [depth],
+            [opponent]:-1 * [depth],
             draw:0
         }
 
@@ -526,13 +526,13 @@ const displayController = (() => {
         setTimeout(()=>{
             switch (true) {
                 case brain === 'easy':
-                    registerPlayerMove(ai.minMaxAI(state.board(), player, 1))
+                    registerPlayerMove(ai.easy(state.board(), player))
                     break
                 case brain === 'normal':
-                    registerPlayerMove(ai.minMaxAI(state.board(), player, 2))
+                    registerPlayerMove(ai.normal(state.board(), player))
                     break
                 case brain === 'hard':
-                    registerPlayerMove(ai.minMaxAI(state.board(), player, 3))
+                    registerPlayerMove(ai.hard(state.board(), player))
                     break
                 case brain === 'god':
                     registerPlayerMove(ai.minMaxAI(state.board(), player, Infinity))
@@ -587,7 +587,7 @@ const displayController = (() => {
     })
 
     // init
-    state.setPlayerXBrain('hard')
-    state.setPlayerOBrain('hard')
+    state.setPlayerXBrain('normal')
+    state.setPlayerOBrain('god')
     nextTurn()
 })()
