@@ -255,84 +255,7 @@ const ai = (()=> {
                 }
             }
         }
-        console.log(bestMove, bestScore)
         return bestMove
-    }
-
-
-    function minimax(board, depth, player) {
-        // Base case: check if the game is over or if we have reached the maximum depth
-        if (gameBoard.winner(board) != undefined || depth == 0) {
-            // Return the score for the current 
-            const score = {
-                'X': 1,
-                'O': -1,
-                'draw': 0,
-            }
-            return score[gameBoard.winner(board)];
-        }
-    
-        // Initialize the best move and score for the current player
-        let bestRow, bestCol;
-        let bestScore;
-        if (player == "max") {
-            // Initialize the best score to a low value
-            bestScore = -Infinity;
-        
-            // Iterate through all the available moves
-            for (let row = 0; row < board.length; row++) {
-                for (let col = 0; col < board[0].length; col++) {
-                // Check if the cell is empty
-                if (board[row][col] == null) {
-                    // Make the move
-                    board[row][col] = player;
-        
-                    // Recursively call minimax with the other player
-                    let score = minimax(board, depth - 1, "min");
-        
-                    // Undo the move
-                    board[row][col] = null;
-        
-                    // Update the best score and move if necessary
-                    if (score > bestScore) {
-                    bestScore = score;
-                    bestRow = row;
-                    bestCol = col;
-                    }
-                }
-            }
-        }
-        } else {
-        // Initialize the best score to a high value
-        bestScore = Infinity;
-    
-        // Iterate through all the available moves
-        for (let row = 0; row < board.length; row++) {
-            for (let col = 0; col < board[0].length; col++) {
-            // Check if the cell is empty
-            if (board[row][col] == null) {
-                // Make the move
-                board[row][col] = player;
-    
-                // Recursively call minimax with the other player
-                let score = minimax(board, depth - 1, "max");
-    
-                // Undo the move
-                board[row][col] = null;
-    
-                // Update the best score and move if necessary
-                if (score < bestScore) {
-                bestScore = score;
-                bestRow = row;
-                bestCol = col;
-                }
-            }
-            }
-        }
-        }
-    
-        // Return the best move
-        return [bestRow, bestCol];
     }
       
   
@@ -548,6 +471,7 @@ const displayController = (() => {
     const _playerOBrain = document.querySelector('#player-o-setting')
 
     const resetGame = () => {
+        state.disableClick()
         state.setTurnCount('reset')
         state.blurToggle()
         setTimeout(()=> {
