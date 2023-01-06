@@ -22,10 +22,11 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    min-height: 100vh;
     user-select: none;
 }
-
+html, body {
+    height: 100%;
+}
 header {
     text-align: center;
     padding: 10px;
