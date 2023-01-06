@@ -37,6 +37,9 @@ Made by Viky for The Odin Project 2022
       <li>
         hard = > aim for winning ?? prevent enemy from winning ?? easyAI
       </li>
+      <li>
+        god AI = > min max algo, infinite depth
+      </li>
     </ul>  
 </ol>
 
